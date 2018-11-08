@@ -41,7 +41,7 @@ public class WebUserController {
 			produces=MediaType.APPLICATION_JSON_VALUE,
 			consumes=MediaType.APPLICATION_JSON_VALUE)
 	public UserTO registerNewUser(@RequestBody NewUserForm userForm) {
-		return new UserTO();
+		return new UserTO(userForm.getEmail(), "Nadi", userForm.getUserName(), userForm.getAvatar(), userForm.getRole(), 0);
 	}
 	
 	@RequestMapping(
@@ -80,8 +80,10 @@ public class WebUserController {
 			consumes=MediaType.APPLICATION_JSON_VALUE)
 	public void updateUserDetails(@PathVariable("playground") String playground,
 			@PathVariable("email") String email,
-			@RequestBody UserTO user) {
-		//TODO
+			@RequestBody UserTO user) throws Exception {
+		if(!email.endsWith("ac.il")) {
+			throw new Exception("email is incorrect");
+		}
 	}
 	
 	

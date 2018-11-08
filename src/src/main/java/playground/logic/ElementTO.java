@@ -25,9 +25,13 @@ public class ElementTO {
 	public ElementTO(String playground, String id, String name, String creatorPlayground, String creatorEmail) {
 		this.playground = playground;
 		this.id = id;
+		this.location = new Location(0, 0);
 		this. name = name;
+		this.creationDate = new Date();
+		this.expirationDate = null;
 		this.creatorPlayground = creatorPlayground;
 		this.creatorEmail = creatorEmail;
+		this.type = "pet";
 	}
 	
 	public ElementTO(String playground, String id, Location location, String name, Date creationDate,

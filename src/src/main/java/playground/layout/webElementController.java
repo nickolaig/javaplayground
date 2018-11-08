@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.expression.spel.ast.BooleanLiteral;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,12 +36,13 @@ public class webElementController {
 	
 	@RequestMapping(
 			method=RequestMethod.POST,
-			path="/playground/elements/{userPlayground }/{email}",
+			path="/playground/elements/{userPlayground}/{email}",
 			produces=MediaType.APPLICATION_JSON_VALUE,
 			consumes=MediaType.APPLICATION_JSON_VALUE)
 	public ElementTO createNewElement(@RequestBody ElementTO element, @PathVariable("userPlayground") String userPlayground,
 			@PathVariable("email") String email) {
-		return new ElementTO();
+		return new ElementTO(element.getPlayground(), element.getId(), element.getName(),
+				element.getCreatorPlayground(), element.getCreatorEmail());
 	}
 	
 	@RequestMapping(
@@ -50,8 +52,10 @@ public class webElementController {
 	public void updateElement(@PathVariable("userPlayground") String userPlayground,
 			@PathVariable("email") String email,
 			@PathVariable("id") String id,
-			@RequestBody ElementTO element) {
-		//TODO
+			@RequestBody ElementTO element) throws Exception {
+		if(!id.startsWith("1")) {
+			throw new Exception("No Such Element");
+		}
 	}
 	
 	@RequestMapping(
@@ -79,9 +83,9 @@ public class webElementController {
 			@PathVariable("email") String email) {
 		
 		List<ElementTO> elements = Arrays.asList(
-				new ElementTO("Maayan", "123", "Tamagotchi", userPlayground, email),
-				new ElementTO("Maayan", "124", "Message Board", userPlayground, email),
-				new ElementTO("Maayan", "125", "Race Car", userPlayground, email)
+				new ElementTO("TA", "123", "Tamagotchi", userPlayground, email),
+				new ElementTO("TA", "124", "Message Board", userPlayground, email),
+				new ElementTO("TA", "125", "Race Car", userPlayground, email)
 				);
 		
 		return elements.toArray(new ElementTO[0]);
@@ -95,10 +99,26 @@ public class webElementController {
 			@PathVariable("email") String email,
 			@PathVariable("x") double x,
 			@PathVariable("y") double y,
-			@PathVariable("distance") double distance) {
+			@PathVariable("distance") double distance) throws Exception {
 		
-		ElementTO[] elements = null;
-		return elements;
+		List<ElementTO> elements = Arrays.asList(
+				new ElementTO("Maayan", "123", new Location(1, 3), "Tamagotchi", new Date(), new Date(2020, 10, 12), "Pet", null , userPlayground, email),
+				new ElementTO("Maayan", "124", new Location(2, 3), "Message Board", new Date(), new Date(2020, 10, 12), "Pet", null , userPlayground, email),
+				new ElementTO("Maayan", "125", new Location(10, 12), "Race Car", new Date(), new Date(2020, 10, 12), "Pet", null , userPlayground, email)
+				);
+		
+		ArrayList<ElementTO> correctElements = new ArrayList<>();
+		
+		if(distance <= 0) {
+			throw new Exception("Negative distance");
+		}
+		for(int i = 0 ; i < elements.size() ; i++) {
+			if(checkDistance(x, y, distance, elements.get(i).getLocation())) {
+				correctElements.add(elements.get(i));
+			}
+		}
+		
+		return correctElements.toArray(new ElementTO[0]);
 	}
 
 	@RequestMapping(
@@ -134,6 +154,13 @@ public class webElementController {
 		}
 		
 		return correctElements.toArray(new ElementTO[0]);
+	}
+	
+	public static Boolean checkDistance(double x, double y, double distance, Location location) {
+		double currentDistance;
+		
+		currentDistance = Math.sqrt(Math.pow(x - location.getX(), 2) + Math.pow(y - location.getY(), 2));
+		return currentDistance <= distance;		
 	}
 	
 }
