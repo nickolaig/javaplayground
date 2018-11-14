@@ -2,6 +2,8 @@ package src.main.java.playground.layout;
 
 import org.springframework.stereotype.Component;
 
+import src.main.java.playground.logic.UserEntity;
+
 @Component
 public class UserTO {
 	
@@ -24,6 +26,18 @@ public class UserTO {
 		this.avatar = avatar;
 		this.role = role;
 		this.points = points;
+	}
+	
+	public UserTO(UserEntity user) {
+		this();
+		if(user != null) {
+			this.email = user.getEmail();
+			this.playground = user.getPlayground();
+			this.userName = user.getUserName();
+			this.avatar = user.getAvatar();
+			this.role = user.getRole();
+			this.points = user.getPoints();
+		}
 	}
 
 	public String getEmail() {

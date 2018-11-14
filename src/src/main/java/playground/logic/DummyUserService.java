@@ -20,8 +20,20 @@ public class DummyUserService implements UserService{
 
 	@Override
 	public UserEntity addNewUser(UserEntity user) {
-		this.useres.put(user.getUserName(), user);
+		this.useres.put(user.getEmail(), user);
 		return user;
+	}
+
+	@Override
+	public UserEntity getUserByEmail(String email) {
+		UserEntity rv = this.useres.get(email);
+		
+		return rv;
+	}
+
+	@Override
+	public void cleanup() {
+		useres.clear();
 	}
 	
 }

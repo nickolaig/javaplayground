@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import src.main.java.playground.logic.Message;
 import src.main.java.playground.logic.NewUserForm;
+import src.main.java.playground.logic.UserService;
 
 
 @RestController
@@ -17,6 +18,12 @@ public class WebUserController {
 	
 	private UserTO user;
 	private NewUserForm userForm;
+	private UserService userService;
+	
+	@Autowired
+	public void setUserService(UserService userService) {
+		this.userService = userService;
+	}
 	
 	public UserTO getUser() {
 		return user;
@@ -67,7 +74,7 @@ public class WebUserController {
 	public UserTO userLogin(@PathVariable("playground") String playground, @PathVariable("email") String email) throws Exception {
 		
 		if(email.endsWith("ac.il")) {
-			return new UserTO(email, playground, "Idan", "Avatar", "Player", 1);
+			return new UserTO(this.userService.getUserByEmail(email));
 		} else {
 			throw new Exception("email is incorrect");
 		}
