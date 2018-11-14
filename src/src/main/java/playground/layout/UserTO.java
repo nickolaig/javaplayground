@@ -1,4 +1,4 @@
-package src.main.java.playground.logic;
+package src.main.java.playground.layout;
 
 import org.springframework.stereotype.Component;
 

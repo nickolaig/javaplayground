@@ -19,7 +19,6 @@ import src.main.java.playground.logic.ElementTO;
 import src.main.java.playground.logic.Location;
 import src.main.java.playground.logic.Message;
 import src.main.java.playground.logic.NewUserForm;
-import src.main.java.playground.logic.UserTO;
 
 @RestController
 public class webElementController {

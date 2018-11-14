@@ -4,6 +4,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class Message {
 	private String message;
 	private Date creationDate;
@@ -14,9 +17,6 @@ public class Message {
 		this.creationDate = new Date();
 		this.location = new Location(0, 0);
 		this.moreAttributes = new HashMap<>();
-		this.moreAttributes.put("creator", "AdvancedMessageGenerator");
-		this.moreAttributes.put("length", 5);
-		this.moreAttributes.put("validUntil", "forever");
 	}
 
 	public Message(String message) {

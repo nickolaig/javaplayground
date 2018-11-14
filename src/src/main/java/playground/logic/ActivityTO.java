@@ -15,7 +15,7 @@ public class ActivityTO {
 	private String playerPlayground;
 	private String playerEmail;
 	private Map<String, Object> attributes;
-	
+
 	public ActivityTO() {
 		// TODO Auto-generated constructor stub
 	}
@@ -96,6 +96,5 @@ public class ActivityTO {
 	public void setAttributes(Map<String, Object> attributes) {
 		this.attributes = attributes;
 	}
-	
-	
+
 }
