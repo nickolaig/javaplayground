@@ -6,7 +6,8 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ElementTO {
+public class ElementEntity {
+	
 	
 	private String playground;
 	private String id;
@@ -19,23 +20,17 @@ public class ElementTO {
 	private String creatorPlayground;
 	private String creatorEmail;
 	
-	public ElementTO() {
+	
+	
+	public ElementEntity() {
 		
 	}
-	
-	public ElementTO(String playground, String id, String name, String creatorPlayground, String creatorEmail) {
-		this.playground = playground;
-		this.id = id;
-		this.location = new Location(0, 0);
-		this. name = name;
-		this.creationDate = new Date();
-		this.expirationDate = null;
-		this.creatorPlayground = creatorPlayground;
-		this.creatorEmail = creatorEmail;
-		this.type = "pet";
+	public ElementEntity(String id) {
+		setPlayground("Test");
+		this.id=id;
 	}
 	
-	public ElementTO(String playground, String id, Location location, String name, Date creationDate,
+	public ElementEntity(String playground, String id, Location location, String name, Date creationDate,
 			Date expirationDate, String type, Map<String, Object> attributes, String creatorPlayground,
 			String creatorEmail) {
 		super();
@@ -50,7 +45,7 @@ public class ElementTO {
 		this.creatorPlayground = creatorPlayground;
 		this.creatorEmail = creatorEmail;
 	}
-
+	
 	public String getPlayground() {
 		return playground;
 	}
@@ -111,11 +106,15 @@ public class ElementTO {
 	public void setCreatorEmail(String creatorEmail) {
 		this.creatorEmail = creatorEmail;
 	}
-	public ElementEntity toEntity() {
-		return new ElementEntity(this.playground,this.id,this.location,this.name,
-				this.creationDate,this.expirationDate,this.type,
-				this.attributes,this.creatorPlayground,this.creatorEmail);
+	
+	public ElementTO toElementTO() {
+		ElementTO et=new ElementTO(this.getPlayground(), this.getId(),this.getLocation(), this.getName(),this.getCreationDate(),
+				this.getExpirationDate(),this.getType(),this.getAttributes(),
+				this.getCreatorPlayground(), this.getCreatorEmail());
+		return et;
 		
 	}
+
 	
+
 }
