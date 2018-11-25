@@ -10,13 +10,13 @@ public class UserEntity {
 	private String userName;
 	private String avatar;
 	private String role;
-	private long points;
+	private Long points;
 	
 	public UserEntity() {
 		// TODO Auto-generated constructor stub
 	}
 
-	public UserEntity(String email, String playground, String userName, String avatar, String role, long points) {
+	public UserEntity(String email, String playground, String userName, String avatar, String role, Long points) {
 		super();
 		this.email = email;
 		this.playground = playground;
@@ -66,11 +66,11 @@ public class UserEntity {
 		this.role = role;
 	}
 
-	public long getPoints() {
+	public Long getPoints() {
 		return points;
 	}
 
-	public void setPoints(long points) {
+	public void setPoints(Long points) {
 		this.points = points;
 	}
 	

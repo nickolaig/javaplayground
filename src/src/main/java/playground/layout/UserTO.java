@@ -87,6 +87,17 @@ public class UserTO {
 	public void setPoints(long points) {
 		this.points = points;
 	}
+
+	public UserEntity toEntity() {
+		UserEntity rv = new UserEntity();
+		rv.setEmail(this.email);
+		rv.setPlayground(this.playground);
+		rv.setAvatar(this.avatar);
+		rv.setPoints(this.points);
+		rv.setRole(this.role);
+		rv.setUserName(this.userName);
+		return rv;
+	}
 	
 	
 }

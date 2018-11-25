@@ -12,86 +12,73 @@ import src.main.java.playground.logic.Message;
 import src.main.java.playground.logic.NewUserForm;
 import src.main.java.playground.logic.UserService;
 
-
 @RestController
 public class WebUserController {
-	
+
 	private UserTO user;
 	private NewUserForm userForm;
 	private UserService userService;
-	
+
 	@Autowired
 	public void setUserService(UserService userService) {
 		this.userService = userService;
 	}
-	
+
 	public UserTO getUser() {
 		return user;
 	}
-	
+
 	@Autowired
 	public void setUser(UserTO user) {
 		this.user = user;
 	}
+
 	public NewUserForm getUserForm() {
 		return userForm;
 	}
-	
+
 	@Autowired
 	public void setUserForm(NewUserForm userForm) {
 		this.userForm = userForm;
 	}
-	
-	@RequestMapping(
-			method=RequestMethod.POST,
-			path="/playground/users",
-			produces=MediaType.APPLICATION_JSON_VALUE,
-			consumes=MediaType.APPLICATION_JSON_VALUE)
-	public UserTO registerNewUser(@RequestBody NewUserForm userForm) {
-		return new UserTO(userForm.getEmail(), "Nadi", userForm.getUserName(), userForm.getAvatar(), userForm.getRole(), 0);
+
+	@RequestMapping(method = RequestMethod.POST, path = "/playground/users", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public UserTO registerNewUser(@RequestBody NewUserForm userForm) throws Exception {
+
+		UserTO returnedUser = new UserTO(userForm.getEmail(), "Nadi", userForm.getUserName(), userForm.getAvatar(),
+				userForm.getRole(), 0);
+		return new UserTO(userService.addNewUser(returnedUser.toEntity()));
 	}
-	
-	@RequestMapping(
-			method=RequestMethod.GET,
-			path="/playground/users/confirm/{playground}/{email}/{code}",
-			produces=MediaType.APPLICATION_JSON_VALUE)
-	public UserTO userValidation(@PathVariable("playground") String playground,
-			@PathVariable("email") String email, @PathVariable("code") String code) throws Exception {
-		
-		//if code length is even --> the code is ok
-		if(code.length() % 2 == 0) {
-			return new UserTO(email, playground, "Maayan", "Avatar", "Manager", 0);
+
+	@RequestMapping(method = RequestMethod.GET, path = "/playground/users/confirm/{playground}/{email}/{code}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public UserTO userValidation(@PathVariable("playground") String playground, @PathVariable("email") String email,
+			@PathVariable("code") String code) throws Exception {
+
+		// if code length is even --> the code is ok
+		if (code.length() % 2 == 0) {
+			return new UserTO(this.userService.getUserByEmail(email));
 		} else {
 			throw new Exception("Invalid code");
 		}
-		
+
 	}
-	
-	@RequestMapping(
-			method=RequestMethod.GET,
-			path="/playground/users/login/{playground}/{email}",
-			produces=MediaType.APPLICATION_JSON_VALUE)
-	public UserTO userLogin(@PathVariable("playground") String playground, @PathVariable("email") String email) throws Exception {
-		
-		if(email.endsWith("ac.il")) {
+
+	@RequestMapping(method = RequestMethod.GET, path = "/playground/users/login/{playground}/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public UserTO userLogin(@PathVariable("playground") String playground, @PathVariable("email") String email)
+			throws Exception {
+
+		if (email.endsWith("ac.il")) {
 			return new UserTO(this.userService.getUserByEmail(email));
 		} else {
 			throw new Exception("email is incorrect");
 		}
-		
+
 	}
-	
-	@RequestMapping(
-			method=RequestMethod.PUT,
-			path="/playground/users/{playground}/{email}",
-			consumes=MediaType.APPLICATION_JSON_VALUE)
-	public void updateUserDetails(@PathVariable("playground") String playground,
-			@PathVariable("email") String email,
-			@RequestBody UserTO user) throws Exception {
-		if(!email.endsWith("ac.il")) {
-			throw new Exception("email is incorrect");
-		}
+
+	@RequestMapping(method = RequestMethod.PUT, path = "/playground/users/{playground}/{email}", consumes = MediaType.APPLICATION_JSON_VALUE)
+	public void updateUserDetails(@PathVariable("playground") String playground, @PathVariable("email") String email,
+			@RequestBody UserTO newUser) throws Exception {
+		this.userService.updateUser(email, newUser.toEntity());
 	}
-	
-	
+
 }
