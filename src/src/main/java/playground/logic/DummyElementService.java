@@ -1,6 +1,7 @@
 package src.main.java.playground.logic;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +25,8 @@ public class DummyElementService implements ElementService{
 
 	@Override
 	public ElementEntity addNewElement(ElementEntity element) {
+		if(this.elements.containsKey(element.getPlayground()+element.getId()))
+			throw new RuntimeException("Element already exists");
 		this.elements.put(element.getPlayground()+element.getId(), element);
 		return element;
 	}
@@ -74,6 +77,41 @@ public class DummyElementService implements ElementService{
 		}
 		return correctElements.toArray(new ElementTO[0]);
 	}
+
+	@Override
+	public ElementTO[] getDistanceElements(double x, double y, double distance) throws Exception {
+		
+		
+		ArrayList<ElementTO> correctElements = new ArrayList<>();
+		System.out.println();
+
+		if (distance <= 0) {
+			throw new Exception("Negative distance");
+		}
+		for (ElementEntity element:this.elements.values()) {
+			if (checkDistance(x, y, distance, element.getLocation())) {
+				correctElements.add(element.toElementTO());
+			}
+		}
+		return correctElements.toArray(new ElementTO[0]);
+	}
+	public static Boolean checkDistance(double x, double y, double distance, Location location) {
+		double currentDistance;
+
+		currentDistance = Math.sqrt(Math.pow(x - location.getX(), 2) + Math.pow(y - location.getY(), 2));
+		return currentDistance <= distance;
+	}
+
+	@Override
+	public ElementTO[] getElementsWithPagination(int size, int page) {
+		return (new ArrayList<>(
+				this.elements.values())
+				.stream()
+				.skip(size * page)
+				.limit(size).map(ElementEntity::toElementTO)
+				.collect(Collectors.toList())).toArray(new ElementTO[0]);
+	}
+
 	
 	
 	

@@ -236,10 +236,7 @@ public class ElementTests {
 //		e3.setPlayground("TA");
 //		e3.setId("125");
 //		e3.setName("test");
-//		Map mp=new HashMap();
-//		mp.put("name", "test");
-//		e1.setAttributes(mp);
-//		e2.setAttributes(mp);
+//
 //
 //		Stream.of(e1, e2, e3)
 //		.forEach(this.elementService::addNewElement);

@@ -1,5 +1,6 @@
 package src.main.java.playground.logic;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface ElementService {
@@ -10,4 +11,6 @@ public interface ElementService {
 	public List<ElementTO> getAllElements();
 	public int size();
 	public ElementTO[] getSearch(String attributeName,String value);
+	public ElementTO[] getDistanceElements(double x,double y,double distance) throws Exception;
+	public ElementTO[] getElementsWithPagination(int size, int page);
 }

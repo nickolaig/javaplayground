@@ -1,4 +1,5 @@
 package src.main.java.playground.layout;
+
 //TODO ADD PAGINATION!
 //TODO REFACTOR CODE TO SERVICE CLASS DO NOT OVERLOAD THE CONTROLLER 
 //TODO ADD APPROPRIATE EXCEPTION CLASSES
@@ -10,6 +11,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.spel.ast.BooleanLiteral;
@@ -18,7 +20,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 
 import src.main.java.playground.logic.ElementEntity;
 import src.main.java.playground.logic.ElementService;
@@ -31,120 +35,90 @@ import src.main.java.playground.logic.NewUserForm;
 public class webElementController {
 	private ElementTO element;
 	private ElementService elementService;
-	
+
 	public ElementTO getElement() {
 		return element;
 	}
+
 	@Autowired
 	public void setElementService(ElementService elementService) {
 		this.elementService = elementService;
 	}
+
 	@Autowired
 	public void setElement(ElementTO element) {
 		this.element = element;
 	}
-	
-	@RequestMapping(
-			method=RequestMethod.POST,
-			path="/playground/elements/{userPlayground}/{email}",
-			produces=MediaType.APPLICATION_JSON_VALUE,
-			consumes=MediaType.APPLICATION_JSON_VALUE)
-	public ElementTO createNewElement(@RequestBody ElementTO element, @PathVariable("userPlayground") String userPlayground,
-			@PathVariable("email") String email) {
-		ElementTO et=new ElementTO(element.getPlayground(), element.getId(),element.getLocation(), element.getName(),element.getCreationDate(),
-				element.getExpirationDate(),element.getType(),element.getAttributes(),
+
+	@RequestMapping(method = RequestMethod.POST, path = "/playground/elements/{userPlayground}/{email}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ElementTO createNewElement(@RequestBody ElementTO element,
+			@PathVariable("userPlayground") String userPlayground, @PathVariable("email") String email) {
+		ElementTO et = new ElementTO(element.getPlayground(), element.getId(), element.getLocation(), element.getName(),
+				element.getCreationDate(), element.getExpirationDate(), element.getType(), element.getAttributes(),
 				element.getCreatorPlayground(), element.getCreatorEmail());
 		this.elementService.addNewElement(et.toEntity());
 		return et;
 	}
-	
-	@RequestMapping(
-			method=RequestMethod.PUT,
-			path="/playground/elements/{userPlayground}/{email}/{playground}/{id}",
-			consumes=MediaType.APPLICATION_JSON_VALUE)
+
+	@RequestMapping(method = RequestMethod.PUT, path = "/playground/elements/{userPlayground}/{email}/{playground}/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public void updateElement(@PathVariable("userPlayground") String userPlayground,
-			@PathVariable("email") String email,
-			@PathVariable("id") String id,
-			@RequestBody ElementTO element) throws Exception {
-		ElementTO et=new ElementTO(element.getPlayground(), element.getId(),element.getLocation(), element.getName(),element.getCreationDate(),
-				element.getExpirationDate(),element.getType(),element.getAttributes(),
+			@PathVariable("email") String email, @PathVariable("id") String id, @RequestBody ElementTO element)
+			throws Exception {
+		ElementTO et = new ElementTO(element.getPlayground(), element.getId(), element.getLocation(), element.getName(),
+				element.getCreationDate(), element.getExpirationDate(), element.getType(), element.getAttributes(),
 				element.getCreatorPlayground(), element.getCreatorEmail());
 
-		
-		if(this.elementService.getElementById(et.getPlayground(), et.getId())==null) {
+		if (this.elementService.getElementById(et.getPlayground(), et.getId()) == null) {
 			throw new Exception("No Such Element");
-		}
-		else
-		{
-			this.elementService.updateElementById(et.getPlayground(),et.getId(), et.toEntity());
+		} else {
+			this.elementService.updateElementById(et.getPlayground(), et.getId(), et.toEntity());
 		}
 	}
-	
-	@RequestMapping(
-			method=RequestMethod.GET,
-			path="/playground/elements/{userPlayground}/{email}/{playground}/{id}",
-			produces=MediaType.APPLICATION_JSON_VALUE)
+
+	@RequestMapping(method = RequestMethod.GET, path = "/playground/elements/{userPlayground}/{email}/{playground}/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ElementTO viewElement(@PathVariable("userPlayground") String userPlayground,
-			@PathVariable("email") String email,
-			@PathVariable("playground") String playground,
+			@PathVariable("email") String email, @PathVariable("playground") String playground,
 			@PathVariable("id") String id) throws Exception {
-		
-		if(this.elementService.getElementById(playground, id)!=null) {
-			ElementEntity ee=this.elementService.getElementById(playground, id);
-			ElementTO et=ee.toElementTO();
+
+		if (this.elementService.getElementById(playground, id) != null) {
+			ElementEntity ee = this.elementService.getElementById(playground, id);
+			ElementTO et = ee.toElementTO();
 			return et;
 		} else {
 			throw new Exception("Element not found!");
 		}
-		
+
 	}
-	//TODO ADD PAGINATION!
-	@RequestMapping(
-			method=RequestMethod.GET,
-			path="/playground/elements/{userPlayground}/{email}/all",
-			produces=MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(method = RequestMethod.GET, path = "/playground/elements/{userPlayground}/{email}/all", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ElementTO[] viewAllElements(@PathVariable("userPlayground") String userPlayground,
-			@PathVariable("email") String email) {
-		
-		List<ElementTO> elements = this.elementService.getAllElements();
-		
-		return elements.toArray(new ElementTO[0]);
-	}
-	
-	@RequestMapping(
-			method=RequestMethod.GET,
-			path="/playground/elements/{userPlayground}/{email}/near/{x}/{y}/{distance}",
-			produces=MediaType.APPLICATION_JSON_VALUE)
-	public ElementTO[] viewAllElementsClosestToDistance(@PathVariable("userPlayground") String userPlayground,
 			@PathVariable("email") String email,
-			@PathVariable("x") double x,
-			@PathVariable("y") double y,
+			@RequestParam(name="size", required=false, defaultValue="10") int size, 
+			@RequestParam(name="page", required=false, defaultValue="0") int page) {
+		
+		return this.elementService.getElementsWithPagination(size, page);
+
+	}
+//	// TODO ADD PAGINATION!
+//	@RequestMapping(method = RequestMethod.GET, path = "/playground/elements/{userPlayground}/{email}/all", produces = MediaType.APPLICATION_JSON_VALUE)
+//	public ElementTO[] viewAllElements(@PathVariable("userPlayground") String userPlayground,
+//			@PathVariable("email") String email) {
+//
+//		List<ElementTO> elements = this.elementService.getAllElements();
+//
+//		return elements.toArray(new ElementTO[0]);
+//	}
+
+	@RequestMapping(method = RequestMethod.GET, path = "/playground/elements/{userPlayground}/{email}/near/{x}/{y}/{distance}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ElementTO[] viewAllElementsClosestToDistance(@PathVariable("userPlayground") String userPlayground,
+			@PathVariable("email") String email, @PathVariable("x") double x, @PathVariable("y") double y,
 			@PathVariable("distance") double distance) throws Exception {
-		//TODO redo to service
-		List<ElementTO> elements = this.elementService.getAllElements();
-		
-		ArrayList<ElementTO> correctElements = new ArrayList<>();
-		System.out.println(elements);
-		
-		if(distance <= 0) {
-			throw new Exception("Negative distance");
-		}
-		for(int i = 0 ; i < elements.size() ; i++) {
-			if(checkDistance(x, y, distance, elements.get(i).getLocation())) {
-				correctElements.add(elements.get(i));
-			}
-		}
-		
-		return correctElements.toArray(new ElementTO[0]);
+
+		return this.elementService.getDistanceElements(x, y, distance);
 	}
 
-	@RequestMapping(
-			method=RequestMethod.GET,
-			path="/playground/elements/{userPlayground}/{email}/search/{attributeName}/{value}",
-			produces=MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(method = RequestMethod.GET, path = "/playground/elements/{userPlayground}/{email}/search/{attributeName}/{value}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ElementTO[] searchElementsByAttributeValue(@PathVariable("userPlayground") String userPlayground,
-			@PathVariable("email") String email,
-			@PathVariable("attributeName") String attributeName,
+			@PathVariable("email") String email, @PathVariable("attributeName") String attributeName,
 			@PathVariable("value") String value) {
 //		
 //		HashMap<String, Object> attributesForCorrectCheck = new HashMap<String, Object>();
@@ -172,12 +146,6 @@ public class webElementController {
 //		
 		return this.elementService.getSearch(attributeName, value);
 	}
-	
-	public static Boolean checkDistance(double x, double y, double distance, Location location) {
-		double currentDistance;
-		
-		currentDistance = Math.sqrt(Math.pow(x - location.getX(), 2) + Math.pow(y - location.getY(), 2));
-		return currentDistance <= distance;		
-	}
-	
+
+
 }
