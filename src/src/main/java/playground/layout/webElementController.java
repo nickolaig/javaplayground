@@ -1,5 +1,9 @@
 package src.main.java.playground.layout;
-
+//TODO ADD PAGINATION!
+//TODO REFACTOR CODE TO SERVICE CLASS DO NOT OVERLOAD THE CONTROLLER 
+//TODO ADD APPROPRIATE EXCEPTION CLASSES
+//TODO REWORK ATTRIBUTE SEARCH MANAGER
+//TODO CHECK GHERKIN FOR TEST COVERAGE (WHAT HAPPENS IF SAME USER ADDED TWICE?)
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -87,16 +91,14 @@ public class webElementController {
 		
 		if(this.elementService.getElementById(playground, id)!=null) {
 			ElementEntity ee=this.elementService.getElementById(playground, id);
-			ElementTO et=new ElementTO(ee.getPlayground(), ee.getId(),ee.getLocation(), ee.getName(),ee.getCreationDate(),
-					ee.getExpirationDate(),ee.getType(),ee.getAttributes(),
-					ee.getCreatorPlayground(), ee.getCreatorEmail());
+			ElementTO et=ee.toElementTO();
 			return et;
 		} else {
 			throw new Exception("Element not found!");
 		}
 		
 	}
-	
+	//TODO ADD PAGINATION!
 	@RequestMapping(
 			method=RequestMethod.GET,
 			path="/playground/elements/{userPlayground}/{email}/all",
@@ -118,7 +120,7 @@ public class webElementController {
 			@PathVariable("x") double x,
 			@PathVariable("y") double y,
 			@PathVariable("distance") double distance) throws Exception {
-		
+		//TODO redo to service
 		List<ElementTO> elements = this.elementService.getAllElements();
 		
 		ArrayList<ElementTO> correctElements = new ArrayList<>();
