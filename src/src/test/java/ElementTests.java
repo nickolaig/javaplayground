@@ -222,32 +222,32 @@ public class ElementTests {
 	}
 
 
-//	@Test
-//	public void   getElementByAttributeAndValueSuccessfully() throws Exception{
-//		ElementEntity e1 = new ElementEntity();
-//		e1.setPlayground("TA");
-//		e1.setId("123");
-//		e1.setName("test1");
-//		ElementEntity e2 = new ElementEntity();
-//		e2.setPlayground("TA");
-//		e2.setId("124");
-//		e2.setName("test");
-//		ElementEntity e3 = new ElementEntity();
-//		e3.setPlayground("TA");
-//		e3.setId("125");
-//		e3.setName("test");
-//
-//
-//		Stream.of(e1, e2, e3)
-//		.forEach(this.elementService::addNewElement);
-//		
-//		ElementTO[] actualElements = this.restTemplate.getForObject(this.url + "/search/{attributeName}/{value}", ElementTO[].class, "name", "test");
-//		
-//		assertThat(actualElements)
-//				.isNotNull()
-//				.hasSize(2);
-//	}
-//	
+	@Test
+	public void getElementByAttributeAndValueSuccessfully() throws Exception{
+		ElementEntity e1 = new ElementEntity();
+		e1.setPlayground("TA");
+		e1.setId("123");
+		e1.setName("test1");
+		ElementEntity e2 = new ElementEntity();
+		e2.setPlayground("TA");
+		e2.setId("124");
+		e2.setName("test");
+		ElementEntity e3 = new ElementEntity();
+		e3.setPlayground("TA");
+		e3.setId("125");
+		e3.setName("test");
+
+
+		Stream.of(e1, e2, e3)
+		.forEach(this.elementService::addNewElement);
+		
+		ElementTO[] actualElements = this.restTemplate.getForObject(this.url + "/search/{attributeName}/{value}", ElementTO[].class, "name", "test");
+		
+		assertThat(actualElements)
+				.isNotNull()
+				.hasSize(2);
+	}
+	
 
 
 }

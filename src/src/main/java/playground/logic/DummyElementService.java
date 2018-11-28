@@ -66,14 +66,12 @@ public class DummyElementService implements ElementService{
 	@Override
 	public ElementTO[] getSearch(String attributeName, String value) {
 		ArrayList<ElementTO> correctElements = new ArrayList<>();
-		List<ElementEntity> eA=(List<ElementEntity>) this.elements.values();
-		
-		for(int i = 0 ; i < eA.size() ; i++) {
-			if(eA.get(i).getAttributes().get(attributeName)!=null) {
-				if(eA.get(i).getAttributes().get(attributeName).equals(value)) {
-					correctElements.add(eA.get(i).toElementTO());
-				}
-			}
+		Collection<ElementEntity> eA = this.elements.values();
+		for (ElementEntity e : eA) {
+			if (e.getAttributes().get(attributeName) != null)
+					if (e.getAttributes().get(attributeName).equals(value)) {
+						correctElements.add(e.toElementTO());
+					}
 		}
 		return correctElements.toArray(new ElementTO[0]);
 	}
