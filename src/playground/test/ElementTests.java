@@ -3,6 +3,8 @@ package playground.test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
@@ -62,7 +64,6 @@ public class ElementTests {
 	}
 
 	// Create new element
-	// TODO: Check what is an actual ID (+playground??)
 	@Test
 	public void testCreateElementSuccessfully() throws Exception {
 		String playground = "TA";
@@ -90,7 +91,19 @@ public class ElementTests {
 			return rvalue;
 		}).isEqualTo(expectedEntityResult);
 	}
+	@Test(expected = Exception.class)
+	public void testCreateElementFailsDublicateElement() throws Exception {
+		String playground = "TA";
+		String id = "32167";
+		String name = "Tamagotchi";
+		String creatorName = "TA";
+		String creatorEmail = "benny@ac.il";
 
+		ElementTO newElement = new ElementTO(playground, id, name, creatorName, creatorEmail);
+		ElementTO rv = this.restTemplate.postForObject(this.url, newElement, ElementTO.class);
+		ElementTO rv2 = this.restTemplate.postForObject(this.url, newElement, ElementTO.class);
+
+	}
 	// Update Element
 	@Test
 	public void testUpdateElementSuccessfully() throws Exception {
@@ -281,5 +294,38 @@ public class ElementTests {
 				ElementTO[].class, "playground", "Maayan");
 		assertThat(actualElements).isNotNull().hasSize(0);
 	}
-
+	@Test
+    public void testShowElementsUsingPaginationSuccessFully() throws Exception {
+        Map<String,Object> attributes = new HashMap<>();
+        attributes.put("Color", 1);
+       
+        ElementEntity element1 =  new ElementEntity("TA", "123", 1.0, 1.0, "element1", new Date(), new Date(2019, 1, 20), "pet", attributes, "Nikos Vertis", "niko@ac.il");
+        this.elementService.addNewElement(element1);
+       
+        ElementEntity element2 =  new ElementEntity("TA", "124", 2.0, 2.0, "element2", new Date(), new Date(2019, 1, 21), "pet", attributes, "Maayan Boaron", "maayan@ac.il");
+        this.elementService.addNewElement(element2);
+       
+        ElementEntity element3 =  new ElementEntity("TA", "125", 3.0, 3.0, "element3", new Date(), new Date(2019, 1, 22), "pet", attributes, "Idan Haham", "idan@ac.il");
+        this.elementService.addNewElement(element3);
+       
+        ElementTO[] elements = this.restTemplate.getForObject(this.url+ "/all?size={size}&page={page}", ElementTO[].class,2,0);
+        assertThat(elements).isNotNull().hasSize(2);
+    }
+	@Test(expected = Exception.class)
+    public void testShowElementsUsingPaginationFailsWithIncorrectParametres() throws Exception {
+        Map<String,Object> attributes = new HashMap<>();
+        attributes.put("Color", 1);
+       
+        ElementEntity element1 =  new ElementEntity("TA", "123", 1.0, 1.0, "element1", new Date(), new Date(2019, 1, 20), "pet", attributes, "Nikos Vertis", "niko@ac.il");
+        this.elementService.addNewElement(element1);
+       
+        ElementEntity element2 =  new ElementEntity("TA", "124", 2.0, 2.0, "element2", new Date(), new Date(2019, 1, 21), "pet", attributes, "Maayan Boaron", "maayan@ac.il");
+        this.elementService.addNewElement(element2);
+       
+        ElementEntity element3 =  new ElementEntity("TA", "125", 3.0, 3.0, "element3", new Date(), new Date(2019, 1, 22), "pet", attributes, "Idan Haham", "idan@ac.il");
+        this.elementService.addNewElement(element3);
+       
+        ElementTO[] elements = this.restTemplate.getForObject(this.url+ "/all?size={size}&page={page}", ElementTO[].class,5,-1);
+        assertThat(elements).isNotNull().hasSize(2);
+    }
 }
