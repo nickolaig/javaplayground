@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 import playground.logic.ElementEntity;
 import playground.logic.ElementService;
 import playground.logic.ElementTO;
+import playground.logic.UserEntity;
+import playground.logic.UserKey;
+import playground.logic.UserService;
 import playground.logic.exceptions.ElementAlreadyExistsException;
 import playground.logic.exceptions.NoSuchElementID;
 
@@ -39,11 +42,13 @@ public class webElementController {
 
 	@RequestMapping(method = RequestMethod.POST, path = "/playground/elements/{userPlayground}/{email}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ElementTO createNewElement(@RequestBody ElementTO element,
-			@PathVariable("userPlayground") String userPlayground, @PathVariable("email") String email) throws ElementAlreadyExistsException {
+			@PathVariable("userPlayground") String userPlayground, @PathVariable("email") String email) throws Exception {
+	
 		ElementTO et = new ElementTO(element.getPlayground(), element.getId(), element.getLocation(), element.getName(),
 				element.getCreationDate(), element.getExpirationDate(), element.getType(), element.getAttributes(),
 				element.getCreatorPlayground(), element.getCreatorEmail());
-		this.elementService.addNewElement(et.toEntity());
+		this.elementService.addNewElement(userPlayground, email, et.toEntity());
+		
 		return et;
 	}
 

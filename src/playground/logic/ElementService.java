@@ -7,7 +7,7 @@ import playground.logic.exceptions.NoSuchElementID;
 
 public interface ElementService {
 	public void cleanup();
-	public ElementEntity addNewElement(ElementEntity element) throws ElementAlreadyExistsException;
+	public ElementEntity addNewElement(String userPlayground, String email, ElementEntity element) throws ElementAlreadyExistsException;
 	public ElementEntity getElementById(String playground, String id) throws NoSuchElementID;
 	public void updateElementById(String playground, String id,ElementEntity element) throws NoSuchElementID;
 	public ElementTO[] getSearch(String attributeName,String value);

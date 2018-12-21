@@ -58,7 +58,7 @@ public class WebUserController {
 	public UserTO userValidation(@PathVariable("playground") String playground, @PathVariable("email") String email,
 			@PathVariable("code") int code) throws Exception {
 		
-		UserEntity currentUser = this.userService.getUserByEmailAndPlayground(email, playground);
+		UserEntity currentUser = this.userService.getUserByEmailAndPlayground(new UserKey(email, playground));
 		
 		if (code == currentUser.getCode()) {
 			currentUser.setIsValidate(true);
@@ -75,7 +75,7 @@ public class WebUserController {
 			throws Exception {
 
 		if (email.endsWith("ac.il")) {
-			return new UserTO(this.userService.getUserByEmailAndPlayground(email, playground));
+			return new UserTO(this.userService.getUserByEmailAndPlayground(new UserKey(email, playground)));
 		} else {
 			throw new UserIncorrectEmail("email is incorrect");
 		}

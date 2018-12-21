@@ -87,7 +87,7 @@ public class WebUserUITests {
 		
 		UserEntity expectedOutcome = new UserEntity(new UserKey(email, playground), "Nadav", "loYodea", "Player", 0L);
 		
-		assertThat(this.userService.getUserByEmailAndPlayground(email, playground))
+		assertThat(this.userService.getUserByEmailAndPlayground(new UserKey(email, playground)))
 		.isNotNull()
 		.extracting("userEmailPlaygroundKey", "userName", "avatar", "role", "points").containsExactly(
 				expectedOutcome.getUserEmailPlaygroundKey(), expectedOutcome.getUserName(),
@@ -161,13 +161,13 @@ public class WebUserUITests {
 		// Given database contains {email : "benny@ac.il" , playground = "TA"}
 		code = this.userService.addNewUser(new UserEntity(new UserKey(email, playground), "Maayan", "Avatar", "Manager", 0L)).getCode();
 
-		// When I invoke GET this.url + "/confirm/TA/benny@ac.il/1234"
+		// When I invoke GET this.url + "/confirm/TA/benny@ac.il/code"
 		UserTO actualUser = this.restTemplate.getForObject(this.url + "/confirm/{playground}/{email}/{code}",
 				UserTO.class, playground, email, code);
-
+		
 		assertThat(actualUser.toEntity()).isNotNull().extracting("userEmailPlaygroundKey", "isValidate", "code")
 				.containsExactly(new UserKey(email, playground), true, code);
-
+		
 	}
 
 	@Test(expected = Exception.class)
@@ -204,7 +204,7 @@ public class WebUserUITests {
 		this.restTemplate.put(this.url + "/{playground}/{email}", to, playground, email);
 
 		// then
-		UserEntity actualEntity = this.userService.getUserByEmailAndPlayground(email, playground);
+		UserEntity actualEntity = this.userService.getUserByEmailAndPlayground(new UserKey(email, playground));
 		assertThat(actualEntity).isNotNull().extracting("userName", "role", "points").containsExactly("benny4k",
 				"Player", 5L);
 	}

@@ -26,6 +26,9 @@ import playground.Application;
 import playground.logic.ElementEntity;
 import playground.logic.ElementService;
 import playground.logic.ElementTO;
+import playground.logic.UserEntity;
+import playground.logic.UserKey;
+import playground.logic.UserService;
 import playground.logic.exceptions.ElementAlreadyExistsException;
 
 @RunWith(SpringRunner.class)
@@ -38,7 +41,9 @@ public class ElementTests {
 	private ObjectMapper jsonMapper;
 	@Autowired
 	private ElementService elementService;
-
+	@Autowired
+	private UserService userService;
+	
 	@PostConstruct
 	public void init() {
 		this.restTemplate = new RestTemplate();
@@ -69,10 +74,18 @@ public class ElementTests {
 		String playground = "TA";
 		String id = "32167";
 		String name = "Tamagotchi";
-		String creatorName = "TA";
+		String creatorPlayground = "TA";
 		String creatorEmail = "benny@ac.il";
-
-		ElementTO newElement = new ElementTO(playground, id, name, creatorName, creatorEmail);
+		UserKey userKey = new UserKey(creatorEmail, creatorPlayground);
+		
+		//TODO: persisting data --> this lines not needed
+		//create new user and validate his account
+		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
+		currentUser.setIsValidate(true);
+		userService.updateUser(userKey, currentUser);
+		
+		
+		ElementTO newElement = new ElementTO(playground, id, name, creatorPlayground, creatorEmail);
 		ElementTO rv = this.restTemplate.postForObject(this.url, newElement, ElementTO.class);
 
 		assertThat(rv.getPlayground()).isEqualTo(playground);
@@ -108,13 +121,14 @@ public class ElementTests {
 	@Test
 	public void testUpdateElementSuccessfully() throws Exception {
 		String playground = "TA";
+		String email = "benny@ac.il";
 		String id = "123";
 
 		String entityJson = "{\"id\":\"123\", \"playground\":\"TA\",\"name\":\"Tamagotchi\",\"creatorPlayground\":\"TA\",\"creatorEmail\":\"benny@ac.il\"}";
 
 		ElementEntity existingElement = this.jsonMapper.readValue(entityJson, ElementEntity.class);
 
-		this.elementService.addNewElement(existingElement);
+		this.elementService.addNewElement(playground, email, existingElement);
 
 		String elementToString = "{\"id\":\"123\", \"playground\":\"TA\",\"name\":\"Tamagucci\",\"creatorPlayground\":\"TA\",\"creatorEmail\":\"newbenny@ac.il\"}";
 		ElementTO updatedElement = this.jsonMapper.readValue(elementToString, ElementTO.class);
@@ -143,11 +157,12 @@ public class ElementTests {
 	public void testGetElementSuccessfully() throws Exception {
 		String playground = "TA";
 		String id = "123";
-
+		String email = "benny@ac.il";
+		
 		ElementEntity addElement = new ElementEntity();
 		addElement.setPlayground(playground);
 		addElement.setId(id);
-		this.elementService.addNewElement(addElement);
+		this.elementService.addNewElement(playground, email, addElement);
 		ElementTO actualElement = this.restTemplate.getForObject(this.url + "/{playground}/{id}", ElementTO.class,
 				playground, id);
 		assertThat(actualElement).isNotNull().extracting("playground", "id").containsExactly(playground, id);
@@ -164,9 +179,12 @@ public class ElementTests {
 //get all elements
 	@Test
 	public void testGetAllElementsSuccess() throws Exception {
+		String playground = "TA";
+		String email = "benny@ac.il";
+		
 		Stream.of("1", "2", "3", "4", "5").map(ElementEntity::new).forEach(t -> {
 			try {
-				this.elementService.addNewElement(t);
+				this.elementService.addNewElement(playground, email, t);
 			} catch (ElementAlreadyExistsException e) {
 				e.printStackTrace();
 			}
@@ -178,6 +196,9 @@ public class ElementTests {
 
 	@Test
 	public void testGetAllElementsClosestToSpecificLocationByDistanceSuccessfully() throws Exception {
+		String playground = "TA";
+		String email = "benny@ac.il";
+		
 		ElementEntity e1 = new ElementEntity();
 		e1.setPlayground("Maayan");
 		e1.setId("123");
@@ -225,7 +246,7 @@ public class ElementTests {
 
 		Stream.of(e1, e2, e3, e4, e5).forEach(t -> {
 			try {
-				this.elementService.addNewElement(t);
+				this.elementService.addNewElement(playground, email, t);
 			} catch (ElementAlreadyExistsException e) {
 
 				e.printStackTrace();
@@ -245,7 +266,9 @@ public class ElementTests {
 
 	@Test
 	public void getElementByAttributeAndValueSuccessfully() throws Exception {
-
+		String playground = "TA";
+		String email = "benny@ac.il";
+		
 		ElementEntity e1 = new ElementEntity();
 		e1.setPlayground("Maayan");
 		e1.setId("123");
@@ -275,7 +298,7 @@ public class ElementTests {
 
 		Stream.of(e1, e2, e3).forEach(t -> {
 			try {
-				this.elementService.addNewElement(t);
+				this.elementService.addNewElement(playground, email, t);
 			} catch (ElementAlreadyExistsException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -296,34 +319,40 @@ public class ElementTests {
 	}
 	@Test
     public void testShowElementsUsingPaginationSuccessFully() throws Exception {
-        Map<String,Object> attributes = new HashMap<>();
+		String playground = "TA";
+		String email = "benny@ac.il";
+		
+		Map<String,Object> attributes = new HashMap<>();
         attributes.put("Color", 1);
        
         ElementEntity element1 =  new ElementEntity("TA", "123", 1.0, 1.0, "element1", new Date(), new Date(2019, 1, 20), "pet", attributes, "Nikos Vertis", "niko@ac.il");
-        this.elementService.addNewElement(element1);
+        this.elementService.addNewElement(playground, email, element1);
        
         ElementEntity element2 =  new ElementEntity("TA", "124", 2.0, 2.0, "element2", new Date(), new Date(2019, 1, 21), "pet", attributes, "Maayan Boaron", "maayan@ac.il");
-        this.elementService.addNewElement(element2);
+        this.elementService.addNewElement(playground, email, element2);
        
         ElementEntity element3 =  new ElementEntity("TA", "125", 3.0, 3.0, "element3", new Date(), new Date(2019, 1, 22), "pet", attributes, "Idan Haham", "idan@ac.il");
-        this.elementService.addNewElement(element3);
+        this.elementService.addNewElement(playground, email, element3);
        
         ElementTO[] elements = this.restTemplate.getForObject(this.url+ "/all?size={size}&page={page}", ElementTO[].class,2,0);
         assertThat(elements).isNotNull().hasSize(2);
     }
 	@Test(expected = Exception.class)
     public void testShowElementsUsingPaginationFailsWithIncorrectParametres() throws Exception {
-        Map<String,Object> attributes = new HashMap<>();
+		String playground = "TA";
+		String email = "benny@ac.il";
+		
+		Map<String,Object> attributes = new HashMap<>();
         attributes.put("Color", 1);
        
         ElementEntity element1 =  new ElementEntity("TA", "123", 1.0, 1.0, "element1", new Date(), new Date(2019, 1, 20), "pet", attributes, "Nikos Vertis", "niko@ac.il");
-        this.elementService.addNewElement(element1);
+        this.elementService.addNewElement(playground, email, element1);
        
         ElementEntity element2 =  new ElementEntity("TA", "124", 2.0, 2.0, "element2", new Date(), new Date(2019, 1, 21), "pet", attributes, "Maayan Boaron", "maayan@ac.il");
-        this.elementService.addNewElement(element2);
+        this.elementService.addNewElement(playground, email, element2);
        
         ElementEntity element3 =  new ElementEntity("TA", "125", 3.0, 3.0, "element3", new Date(), new Date(2019, 1, 22), "pet", attributes, "Idan Haham", "idan@ac.il");
-        this.elementService.addNewElement(element3);
+        this.elementService.addNewElement(playground, email, element3);
        
         ElementTO[] elements = this.restTemplate.getForObject(this.url+ "/all?size={size}&page={page}", ElementTO[].class,5,-1);
         assertThat(elements).isNotNull().hasSize(2);

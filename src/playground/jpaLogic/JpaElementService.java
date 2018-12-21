@@ -9,6 +9,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import playground.aop.MyLog;
 import playground.dal.ElementDao;
 import playground.dal.IdGeneratorDao;
 import playground.logic.ElementEntity;
@@ -31,8 +32,9 @@ public class JpaElementService implements ElementService {
 	}
 
 	@Override
-	public ElementEntity addNewElement(ElementEntity element) throws ElementAlreadyExistsException {
-
+	@Transactional
+	@MyLog
+	public ElementEntity addNewElement(String userPlayground, String email, ElementEntity element) throws ElementAlreadyExistsException {
 		if (!this.elements.existsById(element.getId())) {
 			IdGenerator tmp = this.idGenerator.save(new IdGenerator());
 			Long dummyId = tmp.getId();
