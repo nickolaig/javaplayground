@@ -66,7 +66,7 @@ public class JpaUserService implements UserService {
 	@Override
 	@Transactional
 	@MyLog
-	public void updateUser(UserKey userEmailPlaygroundKey, UserEntity entityUpdates) throws Exception {
+	public void updateUser(UserEntity entityUpdates, UserKey userEmailPlaygroundKey ) throws Exception {
 
 		// if isnt existing throw exception
 		UserEntity existing = this.users.findById(userEmailPlaygroundKey).orElseThrow(

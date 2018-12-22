@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import playground.aop.MyLog;
-import playground.aop.ValidationLog;
+import playground.aop.ValidationManagerLog;
 import playground.dal.ElementDao;
 import playground.dal.IdGeneratorDao;
 import playground.logic.ElementEntity;
@@ -35,6 +35,7 @@ public class JpaElementService implements ElementService {
 	@Override
 	@Transactional
 	@MyLog
+	@ValidationManagerLog
 	public ElementEntity addNewElement(String userPlayground, String email, ElementEntity element) throws ElementAlreadyExistsException {
 		if (!this.elements.existsById(element.getId())) {
 			IdGenerator tmp = this.idGenerator.save(new IdGenerator());

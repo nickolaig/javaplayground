@@ -54,8 +54,16 @@ public class ElementTests {
 	}
 
 	@Before
-	public void setup() {
+	public void setup() throws Exception {
+		String creatorPlayground = "TA";
+		String creatorEmail = "benny@ac.il";
+		UserKey userKey = new UserKey(creatorEmail, creatorPlayground);
 
+		// TODO: persisting data --> this lines not needed
+		// create new user and validate his account
+		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
+		currentUser.setIsValidate(true);
+		userService.updateUser(currentUser, userKey);
 	}
 
 	@After
@@ -77,13 +85,7 @@ public class ElementTests {
 		String name = "Tamagotchi";
 		String creatorPlayground = "TA";
 		String creatorEmail = "benny@ac.il";
-		UserKey userKey = new UserKey(creatorEmail, creatorPlayground);
-
-		// TODO: persisting data --> this lines not needed
-		// create new user and validate his account
-		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
-		currentUser.setIsValidate(true);
-		userService.updateUser(userKey, currentUser);
+		
 
 		ElementTO newElement = new ElementTO(playground, id, name, creatorPlayground, creatorEmail);
 		ElementTO rv = this.restTemplate.postForObject(this.url, newElement, ElementTO.class);
@@ -112,13 +114,7 @@ public class ElementTests {
 		String name = "Tamagotchi";
 		String creatorPlayground = "TA";
 		String creatorEmail = "benny@ac.il";
-		UserKey userKey = new UserKey(creatorEmail, creatorPlayground);
-
-		// TODO: persisting data --> this lines not needed
-		// create new user and validate his account
-		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
-		currentUser.setIsValidate(true);
-		userService.updateUser(userKey, currentUser);
+		
 
 		ElementTO newElement = new ElementTO(playground, id, name, creatorPlayground, creatorEmail);
 		ElementTO rv = this.restTemplate.postForObject(this.url, newElement, ElementTO.class);
@@ -132,13 +128,7 @@ public class ElementTests {
 		String playground = "TA";
 		String email = "benny@ac.il";
 		String id = "123";
-		UserKey userKey = new UserKey(email, playground);
-
-		// TODO: persisting data --> this lines not needed
-		// create new user and validate his account
-		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
-		currentUser.setIsValidate(true);
-		userService.updateUser(userKey, currentUser);
+		
 		
 		String entityJson = "{\"id\":\"123\", \"playground\":\"TA\",\"name\":\"Tamagotchi\",\"creatorPlayground\":\"TA\",\"creatorEmail\":\"benny@ac.il\"}";
 
@@ -163,13 +153,7 @@ public class ElementTests {
 		String playground = "TA";
 		String email = "benny@ac.il";
 		String id = "123";
-		UserKey userKey = new UserKey(email, playground);
-
-		// TODO: persisting data --> this lines not needed
-		// create new user and validate his account
-		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
-		currentUser.setIsValidate(true);
-		userService.updateUser(userKey, currentUser);
+		
 		
 		String entityJson = "{\"id\":\"123\", \"playground\":\"TA\",\"name\":\"Tamagotchi\",\"creatorPlayground\":\"TA\",\"creatorEmail\":\"benny@ac.il\"}";
 		ElementTO newEntity = this.jsonMapper.readValue(entityJson, ElementTO.class);
@@ -182,13 +166,6 @@ public class ElementTests {
 		String playground = "TA";
 		String id = "123";
 		String email = "benny@ac.il";
-		UserKey userKey = new UserKey(email, playground);
-
-		// TODO: persisting data --> this lines not needed
-		// create new user and validate his account
-		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
-		currentUser.setIsValidate(true);
-		userService.updateUser(userKey, currentUser);
 		
 		ElementEntity addElement = new ElementEntity();
 		addElement.setPlayground(playground);
@@ -204,13 +181,7 @@ public class ElementTests {
 		String playground = "TA";
 		String email = "benny@ac.il";
 		String id = "123";
-		UserKey userKey = new UserKey(email, playground);
-
-		// TODO: persisting data --> this lines not needed
-		// create new user and validate his account
-		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
-		currentUser.setIsValidate(true);
-		userService.updateUser(userKey, currentUser);
+		
 		
 		this.restTemplate.getForObject(this.url + "/{playground}/{id}", ElementTO.class, playground, id);
 	}
@@ -220,13 +191,7 @@ public class ElementTests {
 	public void testGetAllElementsSuccess() throws Exception {
 		String playground = "TA";
 		String email = "benny@ac.il";
-		UserKey userKey = new UserKey(email, playground);
-
-		// TODO: persisting data --> this lines not needed
-		// create new user and validate his account
-		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
-		currentUser.setIsValidate(true);
-		userService.updateUser(userKey, currentUser);
+		
 		
 		Stream.of("1", "2", "3", "4", "5").map(ElementEntity::new).forEach(t -> {
 			try {
@@ -244,13 +209,7 @@ public class ElementTests {
 	public void testGetAllElementsClosestToSpecificLocationByDistanceSuccessfully() throws Exception {
 		String playground = "TA";
 		String email = "benny@ac.il";
-		UserKey userKey = new UserKey(email, playground);
-
-		// TODO: persisting data --> this lines not needed
-		// create new user and validate his account
-		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
-		currentUser.setIsValidate(true);
-		userService.updateUser(userKey, currentUser);
+		
 		
 		ElementEntity e1 = new ElementEntity();
 		e1.setPlayground("Maayan");
@@ -316,13 +275,7 @@ public class ElementTests {
 	public void testGetAllElementsInGivenRadiusFails() throws Exception {
 		String playground = "TA";
 		String email = "benny@ac.il";
-		UserKey userKey = new UserKey(email, playground);
-
-		// TODO: persisting data --> this lines not needed
-		// create new user and validate his account
-		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
-		currentUser.setIsValidate(true);
-		userService.updateUser(userKey, currentUser);
+	
 		
 		this.restTemplate.getForObject(this.url + "/near/{x}/{y}/{distance}", ElementTO[].class, 1, 1, -1);
 	}
@@ -331,13 +284,7 @@ public class ElementTests {
 	public void getElementByAttributeAndValueSuccessfully() throws Exception {
 		String playground = "TA";
 		String email = "benny@ac.il";
-		UserKey userKey = new UserKey(email, playground);
-
-		// TODO: persisting data --> this lines not needed
-		// create new user and validate his account
-		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
-		currentUser.setIsValidate(true);
-		userService.updateUser(userKey, currentUser);
+		
 		
 		ElementEntity e1 = new ElementEntity();
 		e1.setPlayground("Maayan");
@@ -384,13 +331,7 @@ public class ElementTests {
 	public void testGetElementByAttributeAndValueSuccessfullyEmpty() throws Exception {
 		String playground = "TA";
 		String email = "benny@ac.il";
-		UserKey userKey = new UserKey(email, playground);
-
-		// TODO: persisting data --> this lines not needed
-		// create new user and validate his account
-		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
-		currentUser.setIsValidate(true);
-		userService.updateUser(userKey, currentUser);
+		
 		
 		ElementTO[] actualElements = this.restTemplate.getForObject(this.url + "/search/{attributeName}/{value}",
 				ElementTO[].class, "playground", "Maayan");
@@ -401,13 +342,6 @@ public class ElementTests {
 	public void testShowElementsUsingPaginationSuccessFully() throws Exception {
 		String playground = "TA";
 		String email = "benny@ac.il";
-		UserKey userKey = new UserKey(email, playground);
-
-		// TODO: persisting data --> this lines not needed
-		// create new user and validate his account
-		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
-		currentUser.setIsValidate(true);
-		userService.updateUser(userKey, currentUser);
 		
 		Map<String, Object> attributes = new HashMap<>();
 		attributes.put("Color", 1);
@@ -433,13 +367,6 @@ public class ElementTests {
 	public void testShowElementsUsingPaginationFailsWithIncorrectParametres() throws Exception {
 		String playground = "TA";
 		String email = "benny@ac.il";
-		UserKey userKey = new UserKey(email, playground);
-
-		// TODO: persisting data --> this lines not needed
-		// create new user and validate his account
-		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
-		currentUser.setIsValidate(true);
-		userService.updateUser(userKey, currentUser);
 		
 		Map<String, Object> attributes = new HashMap<>();
 		attributes.put("Color", 1);

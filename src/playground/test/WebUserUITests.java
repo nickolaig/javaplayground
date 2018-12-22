@@ -194,7 +194,7 @@ public class WebUserUITests {
 		//String entityJson = "{\"email\":\"benny@ac.il\", \"playground\":\"TA\", \"userName\":\"benny\", \"avatar\":\"loyodea\", \"role\":\"Manager\", \"points\":0}";
 		//UserEntity oldUser = this.jsonMapper.readValue(entityJson, UserEntity.class);
 		
-		UserEntity oldUser = new UserEntity(new UserKey(email, playground), "benny", "loyodea", "Manager", 0L);
+		UserEntity oldUser = new UserEntity(new UserKey(email, playground), "benny", "loyodea", "Player", 0L);
 		this.userService.addNewUser(oldUser);
 
 		// when

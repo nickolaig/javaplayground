@@ -85,7 +85,7 @@ public class WebUserController {
 	@RequestMapping(method = RequestMethod.PUT, path = "/playground/users/{playground}/{email}", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public void updateUserDetails(@PathVariable("playground") String playground, @PathVariable("email") String email,
 			@RequestBody UserTO newUser) throws Exception {
-		this.userService.updateUser(new UserKey(email, playground), newUser.toEntity());
+		this.userService.updateUser(newUser.toEntity(), new UserKey(email, playground));
 	}
 
 }
