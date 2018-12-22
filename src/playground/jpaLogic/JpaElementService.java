@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import playground.aop.MyLog;
+import playground.aop.ValidationLog;
 import playground.dal.ElementDao;
 import playground.dal.IdGeneratorDao;
 import playground.logic.ElementEntity;
@@ -49,7 +50,8 @@ public class JpaElementService implements ElementService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public ElementEntity getElementById(String playground, String id) throws NoSuchElementID {
+	@MyLog
+	public ElementEntity getElementById(String userPlayground, String email, String playground, String id) throws NoSuchElementID {
 
 		// ElementEntity rv = this.elements.get(playground+id);
 		ElementEntity rv = this.elements.findById(id).orElseThrow(() -> new NoSuchElementID("No element with " + id));
@@ -57,9 +59,11 @@ public class JpaElementService implements ElementService {
 	}
 
 	@Override
-	public void updateElementById(String playground, String id, ElementEntity element) throws NoSuchElementID {
+	@Transactional
+	@MyLog
+	public void updateElementById(String userPlayground, String email, String playground, String id, ElementEntity element) throws NoSuchElementID {
 
-		ElementEntity existingElement = this.getElementById(playground, id);
+		ElementEntity existingElement = this.getElementById(userPlayground, email, playground, id);
 
 		if (element.getX() != null && !element.getX().equals(existingElement.getX())) {
 			existingElement.setX(element.getX());
@@ -93,12 +97,14 @@ public class JpaElementService implements ElementService {
 
 	@Override
 	@Transactional(readOnly = true)
+	@MyLog
 	public List<ElementEntity> getAllElements(int size, int page) {
 		return this.elements.findAll(PageRequest.of(page, size, Direction.DESC, "creationDate")).getContent();
 	}
 
 	@Override
 	@Transactional(readOnly = true)
+	@MyLog
 	public ElementTO[] getDistanceElements(double x, double y, double distance) throws Exception {
 		ArrayList<ElementTO> correctElements = new ArrayList<>();
 
@@ -114,7 +120,8 @@ public class JpaElementService implements ElementService {
 		}
 		return correctElements.toArray(new ElementTO[0]);
 	}
-
+	
+	@MyLog
 	private static Boolean checkDistance(double x, double y, double distance, Location location) {
 		double currentDistance;
 
@@ -128,13 +135,17 @@ public class JpaElementService implements ElementService {
 	 * 
 	 */
 	@Override
+	@Transactional
+	@MyLog
 	public void cleanup() {
 		this.elements.deleteAll();
 
 	}
 
 	@Override
-	public ElementTO[] getSearch(String attributeName, String value) {
+	@Transactional
+	@MyLog
+	public ElementTO[] getSearch(String userPlayground, String email, String attributeName, String value) {
 
 		ArrayList<ElementTO> correctElements = new ArrayList<>();
 		Iterable<ElementEntity> eA = this.elements.findAll();

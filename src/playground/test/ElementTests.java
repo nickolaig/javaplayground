@@ -43,7 +43,7 @@ public class ElementTests {
 	private ElementService elementService;
 	@Autowired
 	private UserService userService;
-	
+
 	@PostConstruct
 	public void init() {
 		this.restTemplate = new RestTemplate();
@@ -61,6 +61,7 @@ public class ElementTests {
 	@After
 	public void teardown() {
 		this.elementService.cleanup();
+		this.userService.cleanup();
 	}
 
 	@Test
@@ -77,14 +78,13 @@ public class ElementTests {
 		String creatorPlayground = "TA";
 		String creatorEmail = "benny@ac.il";
 		UserKey userKey = new UserKey(creatorEmail, creatorPlayground);
-		
-		//TODO: persisting data --> this lines not needed
-		//create new user and validate his account
+
+		// TODO: persisting data --> this lines not needed
+		// create new user and validate his account
 		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
 		currentUser.setIsValidate(true);
 		userService.updateUser(userKey, currentUser);
-		
-		
+
 		ElementTO newElement = new ElementTO(playground, id, name, creatorPlayground, creatorEmail);
 		ElementTO rv = this.restTemplate.postForObject(this.url, newElement, ElementTO.class);
 
@@ -93,7 +93,7 @@ public class ElementTests {
 
 		ElementEntity expectedEntityResult = newElement.toEntity();
 
-		assertThat(this.elementService.getElementById(playground, id)).isNotNull().usingComparator((e1, e2) -> {
+		assertThat(this.elementService.getElementById(creatorPlayground, creatorEmail, playground, id)).isNotNull().usingComparator((e1, e2) -> {
 			int rvalue = (e1.getPlayground() + e1.getId()).compareTo(e2.getPlayground() + e2.getId());
 			if (rvalue == 0) {
 				rvalue = new Double(e1.getX()).compareTo(e2.getX());
@@ -104,26 +104,42 @@ public class ElementTests {
 			return rvalue;
 		}).isEqualTo(expectedEntityResult);
 	}
+
 	@Test(expected = Exception.class)
-	public void testCreateElementFailsDublicateElement() throws Exception {
+	public void testCreateElementFailsDuplicateElement() throws Exception {
 		String playground = "TA";
 		String id = "32167";
 		String name = "Tamagotchi";
-		String creatorName = "TA";
+		String creatorPlayground = "TA";
 		String creatorEmail = "benny@ac.il";
+		UserKey userKey = new UserKey(creatorEmail, creatorPlayground);
 
-		ElementTO newElement = new ElementTO(playground, id, name, creatorName, creatorEmail);
+		// TODO: persisting data --> this lines not needed
+		// create new user and validate his account
+		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
+		currentUser.setIsValidate(true);
+		userService.updateUser(userKey, currentUser);
+
+		ElementTO newElement = new ElementTO(playground, id, name, creatorPlayground, creatorEmail);
 		ElementTO rv = this.restTemplate.postForObject(this.url, newElement, ElementTO.class);
 		ElementTO rv2 = this.restTemplate.postForObject(this.url, newElement, ElementTO.class);
 
 	}
+
 	// Update Element
 	@Test
 	public void testUpdateElementSuccessfully() throws Exception {
 		String playground = "TA";
 		String email = "benny@ac.il";
 		String id = "123";
+		UserKey userKey = new UserKey(email, playground);
 
+		// TODO: persisting data --> this lines not needed
+		// create new user and validate his account
+		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
+		currentUser.setIsValidate(true);
+		userService.updateUser(userKey, currentUser);
+		
 		String entityJson = "{\"id\":\"123\", \"playground\":\"TA\",\"name\":\"Tamagotchi\",\"creatorPlayground\":\"TA\",\"creatorEmail\":\"benny@ac.il\"}";
 
 		ElementEntity existingElement = this.jsonMapper.readValue(entityJson, ElementEntity.class);
@@ -135,7 +151,7 @@ public class ElementTests {
 
 		this.restTemplate.put(this.url + "/{playground}/{id}", updatedElement, playground, id);
 
-		ElementEntity actualEntity = this.elementService.getElementById(playground, id);
+		ElementEntity actualEntity = this.elementService.getElementById(playground, email, playground, id);
 
 		assertThat(actualEntity).isNotNull().extracting("playground", "id", "name", "creatorEmail")
 				.containsExactly(playground, id, "Tamagucci", "newbenny@ac.il");
@@ -145,8 +161,16 @@ public class ElementTests {
 	@Test(expected = Exception.class)
 	public void testUpdateElementWithNonExistingElement() throws Exception {
 		String playground = "TA";
+		String email = "benny@ac.il";
 		String id = "123";
+		UserKey userKey = new UserKey(email, playground);
 
+		// TODO: persisting data --> this lines not needed
+		// create new user and validate his account
+		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
+		currentUser.setIsValidate(true);
+		userService.updateUser(userKey, currentUser);
+		
 		String entityJson = "{\"id\":\"123\", \"playground\":\"TA\",\"name\":\"Tamagotchi\",\"creatorPlayground\":\"TA\",\"creatorEmail\":\"benny@ac.il\"}";
 		ElementTO newEntity = this.jsonMapper.readValue(entityJson, ElementTO.class);
 
@@ -158,6 +182,13 @@ public class ElementTests {
 		String playground = "TA";
 		String id = "123";
 		String email = "benny@ac.il";
+		UserKey userKey = new UserKey(email, playground);
+
+		// TODO: persisting data --> this lines not needed
+		// create new user and validate his account
+		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
+		currentUser.setIsValidate(true);
+		userService.updateUser(userKey, currentUser);
 		
 		ElementEntity addElement = new ElementEntity();
 		addElement.setPlayground(playground);
@@ -171,8 +202,16 @@ public class ElementTests {
 	@Test(expected = Exception.class)
 	public void testGetElementFailed() throws Exception {
 		String playground = "TA";
+		String email = "benny@ac.il";
 		String id = "123";
+		UserKey userKey = new UserKey(email, playground);
 
+		// TODO: persisting data --> this lines not needed
+		// create new user and validate his account
+		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
+		currentUser.setIsValidate(true);
+		userService.updateUser(userKey, currentUser);
+		
 		this.restTemplate.getForObject(this.url + "/{playground}/{id}", ElementTO.class, playground, id);
 	}
 
@@ -181,6 +220,13 @@ public class ElementTests {
 	public void testGetAllElementsSuccess() throws Exception {
 		String playground = "TA";
 		String email = "benny@ac.il";
+		UserKey userKey = new UserKey(email, playground);
+
+		// TODO: persisting data --> this lines not needed
+		// create new user and validate his account
+		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
+		currentUser.setIsValidate(true);
+		userService.updateUser(userKey, currentUser);
 		
 		Stream.of("1", "2", "3", "4", "5").map(ElementEntity::new).forEach(t -> {
 			try {
@@ -198,6 +244,13 @@ public class ElementTests {
 	public void testGetAllElementsClosestToSpecificLocationByDistanceSuccessfully() throws Exception {
 		String playground = "TA";
 		String email = "benny@ac.il";
+		UserKey userKey = new UserKey(email, playground);
+
+		// TODO: persisting data --> this lines not needed
+		// create new user and validate his account
+		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
+		currentUser.setIsValidate(true);
+		userService.updateUser(userKey, currentUser);
 		
 		ElementEntity e1 = new ElementEntity();
 		e1.setPlayground("Maayan");
@@ -261,6 +314,16 @@ public class ElementTests {
 
 	@Test(expected = Exception.class)
 	public void testGetAllElementsInGivenRadiusFails() throws Exception {
+		String playground = "TA";
+		String email = "benny@ac.il";
+		UserKey userKey = new UserKey(email, playground);
+
+		// TODO: persisting data --> this lines not needed
+		// create new user and validate his account
+		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
+		currentUser.setIsValidate(true);
+		userService.updateUser(userKey, currentUser);
+		
 		this.restTemplate.getForObject(this.url + "/near/{x}/{y}/{distance}", ElementTO[].class, 1, 1, -1);
 	}
 
@@ -268,6 +331,13 @@ public class ElementTests {
 	public void getElementByAttributeAndValueSuccessfully() throws Exception {
 		String playground = "TA";
 		String email = "benny@ac.il";
+		UserKey userKey = new UserKey(email, playground);
+
+		// TODO: persisting data --> this lines not needed
+		// create new user and validate his account
+		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
+		currentUser.setIsValidate(true);
+		userService.updateUser(userKey, currentUser);
 		
 		ElementEntity e1 = new ElementEntity();
 		e1.setPlayground("Maayan");
@@ -311,50 +381,83 @@ public class ElementTests {
 	}
 
 	@Test
-	public void testGetElementByAttributeAndValueSuccessfullyEmpty() {
+	public void testGetElementByAttributeAndValueSuccessfullyEmpty() throws Exception {
+		String playground = "TA";
+		String email = "benny@ac.il";
+		UserKey userKey = new UserKey(email, playground);
 
+		// TODO: persisting data --> this lines not needed
+		// create new user and validate his account
+		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
+		currentUser.setIsValidate(true);
+		userService.updateUser(userKey, currentUser);
+		
 		ElementTO[] actualElements = this.restTemplate.getForObject(this.url + "/search/{attributeName}/{value}",
 				ElementTO[].class, "playground", "Maayan");
 		assertThat(actualElements).isNotNull().hasSize(0);
 	}
+
 	@Test
-    public void testShowElementsUsingPaginationSuccessFully() throws Exception {
+	public void testShowElementsUsingPaginationSuccessFully() throws Exception {
 		String playground = "TA";
 		String email = "benny@ac.il";
+		UserKey userKey = new UserKey(email, playground);
+
+		// TODO: persisting data --> this lines not needed
+		// create new user and validate his account
+		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
+		currentUser.setIsValidate(true);
+		userService.updateUser(userKey, currentUser);
 		
-		Map<String,Object> attributes = new HashMap<>();
-        attributes.put("Color", 1);
-       
-        ElementEntity element1 =  new ElementEntity("TA", "123", 1.0, 1.0, "element1", new Date(), new Date(2019, 1, 20), "pet", attributes, "Nikos Vertis", "niko@ac.il");
-        this.elementService.addNewElement(playground, email, element1);
-       
-        ElementEntity element2 =  new ElementEntity("TA", "124", 2.0, 2.0, "element2", new Date(), new Date(2019, 1, 21), "pet", attributes, "Maayan Boaron", "maayan@ac.il");
-        this.elementService.addNewElement(playground, email, element2);
-       
-        ElementEntity element3 =  new ElementEntity("TA", "125", 3.0, 3.0, "element3", new Date(), new Date(2019, 1, 22), "pet", attributes, "Idan Haham", "idan@ac.il");
-        this.elementService.addNewElement(playground, email, element3);
-       
-        ElementTO[] elements = this.restTemplate.getForObject(this.url+ "/all?size={size}&page={page}", ElementTO[].class,2,0);
-        assertThat(elements).isNotNull().hasSize(2);
-    }
+		Map<String, Object> attributes = new HashMap<>();
+		attributes.put("Color", 1);
+
+		ElementEntity element1 = new ElementEntity("TA", "123", 1.0, 1.0, "element1", new Date(), new Date(2019, 1, 20),
+				"pet", attributes, "Nikos Vertis", "niko@ac.il");
+		this.elementService.addNewElement(playground, email, element1);
+
+		ElementEntity element2 = new ElementEntity("TA", "124", 2.0, 2.0, "element2", new Date(), new Date(2019, 1, 21),
+				"pet", attributes, "Maayan Boaron", "maayan@ac.il");
+		this.elementService.addNewElement(playground, email, element2);
+
+		ElementEntity element3 = new ElementEntity("TA", "125", 3.0, 3.0, "element3", new Date(), new Date(2019, 1, 22),
+				"pet", attributes, "Idan Haham", "idan@ac.il");
+		this.elementService.addNewElement(playground, email, element3);
+
+		ElementTO[] elements = this.restTemplate.getForObject(this.url + "/all?size={size}&page={page}",
+				ElementTO[].class, 2, 0);
+		assertThat(elements).isNotNull().hasSize(2);
+	}
+
 	@Test(expected = Exception.class)
-    public void testShowElementsUsingPaginationFailsWithIncorrectParametres() throws Exception {
+	public void testShowElementsUsingPaginationFailsWithIncorrectParametres() throws Exception {
 		String playground = "TA";
 		String email = "benny@ac.il";
+		UserKey userKey = new UserKey(email, playground);
+
+		// TODO: persisting data --> this lines not needed
+		// create new user and validate his account
+		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
+		currentUser.setIsValidate(true);
+		userService.updateUser(userKey, currentUser);
 		
-		Map<String,Object> attributes = new HashMap<>();
-        attributes.put("Color", 1);
-       
-        ElementEntity element1 =  new ElementEntity("TA", "123", 1.0, 1.0, "element1", new Date(), new Date(2019, 1, 20), "pet", attributes, "Nikos Vertis", "niko@ac.il");
-        this.elementService.addNewElement(playground, email, element1);
-       
-        ElementEntity element2 =  new ElementEntity("TA", "124", 2.0, 2.0, "element2", new Date(), new Date(2019, 1, 21), "pet", attributes, "Maayan Boaron", "maayan@ac.il");
-        this.elementService.addNewElement(playground, email, element2);
-       
-        ElementEntity element3 =  new ElementEntity("TA", "125", 3.0, 3.0, "element3", new Date(), new Date(2019, 1, 22), "pet", attributes, "Idan Haham", "idan@ac.il");
-        this.elementService.addNewElement(playground, email, element3);
-       
-        ElementTO[] elements = this.restTemplate.getForObject(this.url+ "/all?size={size}&page={page}", ElementTO[].class,5,-1);
-        assertThat(elements).isNotNull().hasSize(2);
-    }
+		Map<String, Object> attributes = new HashMap<>();
+		attributes.put("Color", 1);
+
+		ElementEntity element1 = new ElementEntity("TA", "123", 1.0, 1.0, "element1", new Date(), new Date(2019, 1, 20),
+				"pet", attributes, "Nikos Vertis", "niko@ac.il");
+		this.elementService.addNewElement(playground, email, element1);
+
+		ElementEntity element2 = new ElementEntity("TA", "124", 2.0, 2.0, "element2", new Date(), new Date(2019, 1, 21),
+				"pet", attributes, "Maayan Boaron", "maayan@ac.il");
+		this.elementService.addNewElement(playground, email, element2);
+
+		ElementEntity element3 = new ElementEntity("TA", "125", 3.0, 3.0, "element3", new Date(), new Date(2019, 1, 22),
+				"pet", attributes, "Idan Haham", "idan@ac.il");
+		this.elementService.addNewElement(playground, email, element3);
+
+		ElementTO[] elements = this.restTemplate.getForObject(this.url + "/all?size={size}&page={page}",
+				ElementTO[].class, 5, -1);
+		assertThat(elements).isNotNull().hasSize(2);
+	}
 }

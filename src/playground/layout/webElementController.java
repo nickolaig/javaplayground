@@ -60,10 +60,10 @@ public class webElementController {
 				element.getCreationDate(), element.getExpirationDate(), element.getType(), element.getAttributes(),
 				element.getCreatorPlayground(), element.getCreatorEmail());
 
-		if (this.elementService.getElementById(et.getPlayground(), et.getId()) == null) {
+		if (this.elementService.getElementById(userPlayground, email, et.getPlayground(), et.getId()) == null) {
 			throw new Exception("No Such Element");
 		} else {
-			this.elementService.updateElementById(et.getPlayground(), et.getId(), et.toEntity());
+			this.elementService.updateElementById(userPlayground, email, et.getPlayground(), et.getId(), et.toEntity());
 		}
 	}
 
@@ -72,8 +72,8 @@ public class webElementController {
 			@PathVariable("email") String email, @PathVariable("playground") String playground,
 			@PathVariable("id") String id) throws NoSuchElementID {
 
-		if (this.elementService.getElementById(playground, id) != null) {
-			ElementEntity ee = this.elementService.getElementById(playground, id);
+		if (this.elementService.getElementById(userPlayground, email, playground, id) != null) {
+			ElementEntity ee = this.elementService.getElementById(userPlayground, email, playground, id);
 			ElementTO et = ee.toElementTO();
 			return et;
 		} else {
@@ -131,7 +131,7 @@ public class webElementController {
 //			}
 //		}
 //		
-		return this.elementService.getSearch(attributeName, value);
+		return this.elementService.getSearch(userPlayground, email, attributeName, value);
 	}
 
 
