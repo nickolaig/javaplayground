@@ -37,21 +37,17 @@ public class WriteMessagePlugin implements PlaygroundPlugin {
 
 	@Override
 	public Object invokeOperation( ActivityEntity activity) throws Exception {
-		System.err.println("IN IN VOKEKEKE");
 		String id = activity.getElementId();
 		String elementPlaygrund = activity.getElementPlayground();
 		String plPlayground = activity.getPlayerPlayground();
 		String plEmail = activity.getPlayerEmail();
-
+		UserKey userKey = new UserKey(plEmail,plPlayground);
 		Message value = this.jackson.readValue(activity.getJsonAttributes(), Message.class);
-//		UserEntity currentUser = user.getUserByEmailAndPlayground(new UserKey(plEmail,plPlayground));
-//		currentUser.setPoints(currentUser.getPoints() + 2);
+		UserEntity currentUser = user.getUserByEmailAndPlayground(userKey);
+		currentUser.setPoints(currentUser.getPoints() + 2);
+		user.updateUser(currentUser, userKey);
+		
 		return new PostMessageResponse(value.getMessage(),2);
-		/*UserMessageScore messageScore = this.jackson.readValue(element.getJsonAttributes(), UserMessageScore.class);
-		//messageScore.setScore(messageScore.getScore()+2);
-		UserEntity currentUser = user.getUserByEmailAndPlayground(new UserKey(plEmail,plPlayground));
-		currentUser.setPoints(currentUser.getPoints() + 2);;*/
-
 
 	}
 

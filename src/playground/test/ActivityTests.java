@@ -31,6 +31,7 @@ import playground.logic.ElementService;
 import playground.logic.UserEntity;
 import playground.logic.UserKey;
 import playground.logic.UserService;
+import playground.logic.UserTO;
 import playground.logic.exceptions.ElementAlreadyExistsException;
 
 
@@ -88,9 +89,33 @@ public class ActivityTests {
 
 		
 	}
+	
+	@Test
+	public void testReadMessagesSuccessfully()  throws Exception {
+		String activityId = "123";
+		
+		ElementEntity messageBoard = new ElementEntity();
+		messageBoard.setType("Message-Borad"); 
+		messageBoard.setName("messageBoard");
+		messageBoard.setId("123");
+		String creatorPlayground = "TA";
+		String creatorEmail = "benny@ac.il";
+		
+		UserKey userKey = new UserKey(creatorEmail, creatorPlayground);
+		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
+		currentUser.setIsValidate(true);
+		userService.updateUser(currentUser, userKey);
+		
+		ActivityEntity postActivity = new ActivityEntity( "TA", activityId, "readMessages",creatorEmail,"Nadav",null);
+		elementService.addNewElement(creatorPlayground, creatorEmail, messageBoard);
+		
+		ActivityTO rv = this.restTemplate.postForObject(this.url + "/{userPlayground}/{email}" ,postActivity,ActivityTO.class, "TA", creatorEmail);
+	}
 
 	@Test
 	public void testWriteMessageSuccessfully() throws Exception {
+		String activityId = "123";
+		
 		ElementEntity messageBoard = new ElementEntity();
 		messageBoard.setType("Message-Borad"); 
 		messageBoard.setName("messageBoard");
@@ -99,7 +124,9 @@ public class ActivityTests {
 		String creatorEmail = "benny@ac.il";
 		Map<String,Object> attributes = new HashMap<String, Object>() ;
 		attributes.put("message", "hi");
-		ActivityEntity postActivity = new ActivityEntity( "TA","12","WriteMessage",creatorEmail,"Nadav",attributes);
+		
+		//TODO: change to sets
+		ActivityEntity postActivity = new ActivityEntity( "TA", activityId, "WriteMessage",creatorEmail,"Nadav",attributes);
 		
 		UserKey userKey = new UserKey(creatorEmail, creatorPlayground);
 		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
@@ -108,10 +135,20 @@ public class ActivityTests {
 		
 		elementService.addNewElement(creatorPlayground, creatorEmail, messageBoard);
 		
-		ActivityTO activityTO = this.restTemplate.postForObject(this.url + "/{userPlayground}/{email}" ,postActivity,ActivityTO.class, "TA", creatorEmail);
-		System.err.println(activityTO);
+		ActivityTO rv = this.restTemplate.postForObject(this.url + "/{userPlayground}/{email}" ,postActivity,ActivityTO.class, "TA", creatorEmail);
 		
-	
+		String mapAttributesToCheck = jacksonMaper.writeValueAsString(rv.getAttributes());
+		
+		ActivityEntity returnedActivity = this.actService.getActivity(rv.getId());
+		String mapAttributesOfReturnedEntity = jacksonMaper.writeValueAsString(returnedActivity.getAttributes());
+		
+		
+		assertThat(returnedActivity).
+		isNotNull();
+		
+		assertThat(mapAttributesToCheck).isEqualTo(mapAttributesOfReturnedEntity);
+		assertThat(userService.getUserByEmailAndPlayground(userKey)).extracting("points").containsExactly(2L);
+		
 		
 	
 		

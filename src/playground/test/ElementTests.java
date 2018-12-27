@@ -91,11 +91,12 @@ public class ElementTests {
 		ElementTO rv = this.restTemplate.postForObject(this.url, newElement, ElementTO.class);
 
 		assertThat(rv.getPlayground()).isEqualTo(playground);
-		assertThat(rv.getId()).isEqualTo(id);
+//		assertThat(rv.getId()).isEqualTo(id);
 
 		ElementEntity expectedEntityResult = newElement.toEntity();
-
-		assertThat(this.elementService.getElementById(creatorPlayground, creatorEmail, playground, id)).isNotNull().usingComparator((e1, e2) -> {
+		expectedEntityResult.setId(rv.getId());
+		System.err.println("ID :  " + rv.getId());
+		assertThat(this.elementService.getElementById(creatorPlayground, creatorEmail, playground, rv.getId())).isNotNull().usingComparator((e1, e2) -> {
 			int rvalue = (e1.getPlayground() + e1.getId()).compareTo(e2.getPlayground() + e2.getId());
 			if (rvalue == 0) {
 				rvalue = new Double(e1.getX()).compareTo(e2.getX());
@@ -118,6 +119,7 @@ public class ElementTests {
 
 		ElementTO newElement = new ElementTO(playground, id, name, creatorPlayground, creatorEmail);
 		ElementTO rv = this.restTemplate.postForObject(this.url, newElement, ElementTO.class);
+		newElement.setId(rv.getId());
 		ElementTO rv2 = this.restTemplate.postForObject(this.url, newElement, ElementTO.class);
 
 	}
@@ -134,17 +136,17 @@ public class ElementTests {
 
 		ElementEntity existingElement = this.jsonMapper.readValue(entityJson, ElementEntity.class);
 
-		this.elementService.addNewElement(playground, email, existingElement);
+		ElementEntity rv = this.elementService.addNewElement(playground, email, existingElement);
 
-		String elementToString = "{\"id\":\"123\", \"playground\":\"TA\",\"name\":\"Tamagucci\",\"creatorPlayground\":\"TA\",\"creatorEmail\":\"newbenny@ac.il\"}";
+		String elementToString = "{\"id\":\""+rv.getId()+"\", \"playground\":\"TA\",\"name\":\"Tamagucci\",\"creatorPlayground\":\"TA\",\"creatorEmail\":\"newbenny@ac.il\"}";
 		ElementTO updatedElement = this.jsonMapper.readValue(elementToString, ElementTO.class);
 
-		this.restTemplate.put(this.url + "/{playground}/{id}", updatedElement, playground, id);
+		this.restTemplate.put(this.url + "/{playground}/{id}", updatedElement, playground, rv.getId());
 
-		ElementEntity actualEntity = this.elementService.getElementById(playground, email, playground, id);
+		ElementEntity actualEntity = this.elementService.getElementById(playground, email, playground, rv.getId());
 
 		assertThat(actualEntity).isNotNull().extracting("playground", "id", "name", "creatorEmail")
-				.containsExactly(playground, id, "Tamagucci", "newbenny@ac.il");
+				.containsExactly(playground, rv.getId(), "Tamagucci", "newbenny@ac.il");
 
 	}
 
@@ -170,10 +172,11 @@ public class ElementTests {
 		ElementEntity addElement = new ElementEntity();
 		addElement.setPlayground(playground);
 		addElement.setId(id);
-		this.elementService.addNewElement(playground, email, addElement);
+		ElementEntity rv = this.elementService.addNewElement(playground, email, addElement);
+		
 		ElementTO actualElement = this.restTemplate.getForObject(this.url + "/{playground}/{id}", ElementTO.class,
-				playground, id);
-		assertThat(actualElement).isNotNull().extracting("playground", "id").containsExactly(playground, id);
+				playground, rv.getId());
+		assertThat(actualElement).isNotNull().extracting("playground", "id").containsExactly(playground, rv.getId());
 	}
 
 	@Test(expected = Exception.class)

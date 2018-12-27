@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,6 +54,10 @@ public class JpaActivityService implements ActivityService {
 		throw new ActivityNotFoundException();
 	}
 	
+	
+	@Transactional
+	@MyLog
+	@Override
 	public void updateActivity(String id, ActivityEntity activityEntity) throws ActivityNotFoundException  {
 		ActivityEntity existingActivity = this.getActivity(id);
 		
@@ -70,6 +75,7 @@ public class JpaActivityService implements ActivityService {
 	
 	@Override
 	@Transactional
+	@MyLog
 	public List<ActivityEntity> getAllActivities (int size,int page){
 		return this.activities
 				.findAll(PageRequest.of(page, size))
@@ -78,13 +84,16 @@ public class JpaActivityService implements ActivityService {
 	
 	@Override
 	@Transactional
-	public ActivityEntity createActivity(ActivityEntity activity) throws ActivityAlreadyExistException{
+	public ActivityEntity createActivity(String email, String userPlayground, ActivityEntity activity) throws ActivityAlreadyExistException{
 		if (!this.activities.existsById(activity.getId())) {
 			IdGenerator tmp = this.idGenerator.save(new IdGenerator());
 			Long dummyId = tmp.getId();
 			this.idGenerator.delete(tmp);
 			activity.setId("" + dummyId);
 		}
+		
+		activity.setPlayerEmail(email);
+		activity.setPlayerPlayground(userPlayground);
 		try {
 			if(activity.getType()!=null) {
 				String type = activity.getType();
@@ -97,19 +106,23 @@ public class JpaActivityService implements ActivityService {
 				
 				Object content = plugin.invokeOperation(activity);
 				Map<String,Object> contentMap = this.jackson.readValue(this.jackson.writeValueAsString(content), Map.class);
+				System.err.println(contentMap);
 				activity.getAttributes().putAll(contentMap);
+				System.err.println(activity);
 				//activity = jackson.readValue(jackson.writeValueAsString(content),ActivityEntity.class);
-				
-				
-				
-				
+		
 			}
 		}catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+		
+		System.err.println("before SAVEEEEEEEEEEEEEEEEEEEEEEEe   " + activity);
 		return this.activities.save(activity);
 	}
-
+	
+	public List<ActivityEntity> getAllPostMessagesByElementId(String elementId, String type, Pageable pageable){
+		return activities.getAllPostMessagesByElementId(elementId, type, pageable);
+	}
 	
 	@Override
 	@Transactional
@@ -117,19 +130,6 @@ public class JpaActivityService implements ActivityService {
 	public void cleanup() {
 		this.activities.deleteAll();
 	}
-
-	@Override
-	public ActivityTO invokeActivity(ActivityTO activity) throws InvalidInputException {
-		
-		if(activity.getType().equals("pMessage")) {
-			
-			return activity;
-		}  
-		else
-			throw new InvalidInputException("activity does not found");
-	}
-	
-	
 
 
 }

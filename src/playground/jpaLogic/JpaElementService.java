@@ -43,6 +43,7 @@ public class JpaElementService implements ElementService {
 			this.idGenerator.delete(tmp);
 
 			element.setId("" + dummyId);
+			System.err.println("IN GENERATOR ID: " + element.getId());
 			return this.elements.save(element);
 		} else {
 			throw new ElementAlreadyExistsException("element exists with id " + element.getId());

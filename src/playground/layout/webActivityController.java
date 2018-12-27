@@ -47,10 +47,9 @@ public class webActivityController {
 			@PathVariable("email") String email,
 			@RequestBody ActivityTO activity) throws Exception {
 		
-		System.out.println("HERHEHREHREHRHEHR");
 				validateEmailNull(email);
 				validatePlayground(userPlayground);
-				return new ActivityTO(this.actService.createActivity(activity.toEntity()));
+				return new ActivityTO(this.actService.createActivity(email, userPlayground, activity.toEntity()));
 	}
 	
 		

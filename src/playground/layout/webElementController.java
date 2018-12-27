@@ -47,9 +47,8 @@ public class webElementController {
 		ElementTO et = new ElementTO(element.getPlayground(), element.getId(), element.getLocation(), element.getName(),
 				element.getCreationDate(), element.getExpirationDate(), element.getType(), element.getAttributes(),
 				element.getCreatorPlayground(), element.getCreatorEmail());
-		this.elementService.addNewElement(userPlayground, email, et.toEntity());
+		return new ElementTO(this.elementService.addNewElement(userPlayground, email, et.toEntity()));
 		
-		return et;
 	}
 
 	@RequestMapping(method = RequestMethod.PUT, path = "/playground/elements/{userPlayground}/{email}/{playground}/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)

@@ -126,6 +126,11 @@ public class ActivityEntity {
 		this.attributes = attributes;
 	}
 	
+	public String MessageFromAttributes() {
+		return (String)this.getAttributes().get("message");
+	}
+	
+	
 	@Lob
 	public String getJsonAttributes() {
 		try {
