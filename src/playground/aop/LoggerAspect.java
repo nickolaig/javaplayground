@@ -75,7 +75,7 @@ public class LoggerAspect {
 	@Around("@annotation(playground.aop.ValidationManagerLog) && args(userPlayground, email,..)")
 	public Object logValidateManagerAction (ProceedingJoinPoint joinPoint, String userPlayground, String email) throws Throwable {
 		log.info("userPlayground: " + userPlayground + ", email: " + email);
-		System.err.println("IN HEREHREHRHEHREHRHERH");
+		
 		
 		try {
 			UserEntity user = userService.getUserByEmailAndPlayground(new UserKey(email, userPlayground));
@@ -91,4 +91,24 @@ public class LoggerAspect {
 		
 		return joinPoint.proceed();
 	}
+	
+//	@Around("@annotation(playground.aop.ValidationPlayerLog) && args(userPlayground, email,..)")
+//	public Object logValidatePlayerAction (ProceedingJoinPoint joinPoint, String userPlayground, String email) throws Throwable {
+//		log.info("userPlayground: " + userPlayground + ", email: " + email);
+//		
+//		
+//		try {
+//			UserEntity user = userService.getUserByEmailAndPlayground(new UserKey(email, userPlayground));
+//			
+//			//check if hes authorized
+//			if(!user.getRole().equalsIgnoreCase("player")) {
+//				throw new UserNotAuthorizedException("User does not authorized for that action");
+//			}
+//			
+//		} catch(RuntimeException e) {
+//			throw new RuntimeException(e);
+//		}
+//		
+//		return joinPoint.proceed();
+//	}
 }
