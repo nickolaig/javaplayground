@@ -1,6 +1,7 @@
 package playground.jpaLogic;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,9 @@ import playground.logic.ElementKey;
 import playground.logic.ElementService;
 import playground.logic.ElementTO;
 import playground.logic.Location;
+import playground.logic.UserEntity;
+import playground.logic.UserKey;
+import playground.logic.UserService;
 import playground.logic.exceptions.ElementAlreadyExistsException;
 import playground.logic.exceptions.NoSuchElementID;
 
@@ -27,12 +31,14 @@ import playground.logic.exceptions.NoSuchElementID;
 public class JpaElementService implements ElementService {
 
 	private ElementDao elements;
+	private UserService users;
 	private IdGeneratorDao idGenerator;
 	private final static String PLAYGROUND_NAME="TA";
 	
 	@Autowired
-	public JpaElementService(ElementDao elements, IdGeneratorDao idGenerator) {
+	public JpaElementService(ElementDao elements, UserService users, IdGeneratorDao idGenerator) {
 		this.elements = elements;
+		this.users = users;
 		this.idGenerator = idGenerator;
 	}
 
@@ -41,7 +47,7 @@ public class JpaElementService implements ElementService {
 	@MyLog
 	@checkForUserConfirmation
 	@CheckValidActionByRule(role="Player")
-	public ElementEntity addNewElement(String userPlayground, String email, ElementEntity element) throws ElementAlreadyExistsException {
+	public ElementEntity addNewElement(String userPlayground, String email, ElementEntity element) {
 			IdGenerator tmp = this.idGenerator.save(new IdGenerator());
 			Long dummyId = tmp.getId();
 			this.idGenerator.delete(tmp);
@@ -76,35 +82,35 @@ public class JpaElementService implements ElementService {
 	@Override
 	@Transactional
 	@MyLog
-	public void updateElementById(String userPlayground, String email, String playground, String id, ElementEntity element) throws NoSuchElementID {
+	@checkForUserConfirmation
+	@CheckValidActionByRule(role="Player")
+	public void updateElementById(String userPlayground, String email, String playground, String id, ElementEntity element) throws Exception {
 
 		ElementEntity existingElement = this.getElementById(userPlayground, email, playground, id);
-
-		if (element.getX() != null && !element.getX().equals(existingElement.getX())) {
-			existingElement.setX(element.getX());
-		}
-		if (element.getY() != null && !element.getY().equals(existingElement.getY())) {
-			existingElement.setY(element.getY());
-		}
+		
 		if (element.getName() != null && !element.getName().equals(existingElement.getName())) {
 			existingElement.setName(element.getName());
 		}
-		if (element.getCreatorEmail() != null && !element.getCreatorEmail().equals(existingElement.getCreatorEmail())) {
-			existingElement.setCreatorEmail(element.getCreatorEmail());
-		}
-		if (element.getAttributes() != null && !element.getAttributes().equals(existingElement.getAttributes())) {
-			existingElement.setAttributes(element.getAttributes());
-		}
-		if (element.getCreatorPlayground() != null
-				&& !element.getCreatorPlayground().equals(existingElement.getCreatorPlayground())) {
-			existingElement.setCreatorPlayground(element.getCreatorPlayground());
-		}
+		
 		if (element.getExpirationDate() != null
 				&& !element.getExpirationDate().equals(existingElement.getExpirationDate())) {
 			existingElement.setExpirationDate(element.getExpirationDate());
 		}
-		if (element.getPlayground() != null && !element.getPlayground().equals(existingElement.getPlayground())) {
-			existingElement.setPlayground(element.getPlayground());
+		
+		if (element.getX() != null && !element.getX().equals(existingElement.getX())) {
+			existingElement.setX(element.getX());
+		}
+		
+		if (element.getY() != null && !element.getY().equals(existingElement.getY())) {
+			existingElement.setY(element.getY());
+		}
+		
+		if (element.getAttributes() != null) {
+			existingElement.setAttributes(element.getAttributes());
+		}
+		
+		if(element.getPlaygroundAndID() != null && !element.getPlaygroundAndID().equals(existingElement.getPlaygroundAndID())) {
+			throw new RuntimeException("Cant update element's playground/id");
 		}
 
 		this.elements.save(existingElement);
@@ -113,8 +119,18 @@ public class JpaElementService implements ElementService {
 	@Override
 	@Transactional(readOnly = true)
 	@MyLog
-	public List<ElementEntity> getAllElements(int size, int page) {
-		return this.elements.findAll(PageRequest.of(page, size, Direction.DESC, "creationDate")).getContent();
+	@checkForUserConfirmation
+	public List<ElementEntity> getAllElements(String userPlayground, String userEmail, int size, int page) throws Exception {
+		
+		UserEntity user = this.users.getUserByEmailAndPlayground(new UserKey(userEmail, userPlayground));
+		
+		if (user.getRole().equals("Manager")) {
+			return this.elements.findAll(PageRequest.of(page, size, Direction.DESC, "creationDate")).getContent();
+		} else {
+			Date currentDate = new Date();
+			return this.elements.findAllByExpirationDateAfterOrExpirationDateIsNull(currentDate,
+					PageRequest.of(page, size, Direction.DESC, "creationDate")).getContent();
+		}
 	}
 
 	@Override

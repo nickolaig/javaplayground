@@ -59,7 +59,7 @@ public class webElementController {
 		ElementTO et = new ElementTO(element.getPlayground(), element.getId(), element.getLocation(), element.getName(),
 				element.getCreationDate(), element.getExpirationDate(), element.getType(), element.getAttributes(),
 				element.getCreatorPlayground(), element.getCreatorEmail());
-
+		System.err.println(element.toString());
 		this.elementService.updateElementById(userPlayground, email, playground, id, element.toEntity());
 	}
 
@@ -81,9 +81,9 @@ public class webElementController {
 	public ElementTO[] viewAllElements(@PathVariable("userPlayground") String userPlayground,
 			@PathVariable("email") String email,
 			@RequestParam(name="size", required=false, defaultValue="10") int size, 
-			@RequestParam(name="page", required=false, defaultValue="0") int page) {
+			@RequestParam(name="page", required=false, defaultValue="0") int page) throws Exception {
 	
-		return this.elementService.getAllElements(size, page)
+		return this.elementService.getAllElements(userPlayground,email,size, page)
 				.stream() 
 				.map(ElementTO::new)
 				.collect(Collectors.toList())

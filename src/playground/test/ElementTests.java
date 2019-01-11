@@ -2,6 +2,7 @@ package playground.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,6 +45,7 @@ public class ElementTests {
 	private final static String PLAYGROUND_NAME="TA";
 	private final static String PLAYER_EMAIL = "niko@gmail.com";
 	private final static String MANAGER_EMAIL = "kroyzman@gmail.com";
+	private SimpleDateFormat formatter;
 	
 	@Autowired
 	private ElementService elementService;
@@ -54,7 +56,7 @@ public class ElementTests {
 	public void init() {
 		this.restTemplate = new RestTemplate();
 		this.url = "http://localhost:" + port + "/playground/elements";
-
+		this.formatter = new SimpleDateFormat("dd-MM-yyyy");
 		// Jackson init
 		this.jsonMapper = new ObjectMapper();
 	}
@@ -92,7 +94,6 @@ public class ElementTests {
 		
 		ElementTO rv = this.restTemplate.postForObject(this.url + "/{userPlayground}/{email}", newElement, ElementTO.class, PLAYGROUND_NAME, MANAGER_EMAIL);
 		
-		
 		ElementEntity expectedEntityResult = rv.toEntity();
 		
 		ElementEntity elementFromDb = this.elementService.getElementById(PLAYGROUND_NAME, MANAGER_EMAIL, PLAYGROUND_NAME, rv.getId());
@@ -121,76 +122,96 @@ public class ElementTests {
 //		Then the return status is <>2xx
 
 	}
-
-	@Test(expected = Exception.class)
-	public void testCreateElementFailsDuplicateElement() throws Exception {
-		String playground = "TA";
-		String id = "32167";
-		String name = "Tamagotchi";
-		String creatorPlayground = "TA";
-		String creatorEmail = "benny@ac.il";
-		
-
-		ElementTO newElement = new ElementTO(playground, id, name, creatorPlayground, creatorEmail);
-		ElementTO rv = this.restTemplate.postForObject(this.url, newElement, ElementTO.class);
-		newElement.setId(rv.getId());
-		ElementTO rv2 = this.restTemplate.postForObject(this.url, newElement, ElementTO.class);
-
-	}
-
+	
 	// Update Element
 	@Test
-	public void testUpdateElementSuccessfully() throws Exception {
-		String playground = "TA";
-		String email = "benny@ac.il";
-		String id = "123";
+	public void testManagerUpdateElementSuccessfully() throws Exception {
+		
+		String entityJson = "{\"creatorPlayground\":\"TA\",\"creatorEmail\":\"kroyzman@gmail.com\" ,"
+				+ "\"x\":0,\"y\":0 ,\"name\":\"Test\","
+				+ "\"expirationDate\":null,\"type\":\"Tamagotchi\"}";
+		
+		ElementEntity entity = this.jsonMapper.readValue(entityJson, ElementEntity.class);
+		
+		ElementEntity actualFullEntity = this.elementService.addNewElement(PLAYGROUND_NAME, MANAGER_EMAIL, entity);
 		
 		
-		String entityJson = "{\"id\":\"123\", \"playground\":\"TA\",\"name\":\"Tamagotchi\",\"creatorPlayground\":\"TA\",\"creatorEmail\":\"benny@ac.il\"}";
+		String entityJsonToUpdate = "{\"creatorPlayground\":\"TA\",\"playground\":\"TA\",\"creatorEmail\":\"kroyzman@gmail.com\" "
+				+ ",\"location\":{\"x\":1.0,\"y\":1.0},\"name\":\"ElementUpdateName\","
+				+ "\"expirationDate\":null,\"type\":\"Tamagotchi\" ,\"attributes\": {\"Life\" : 50, \"Happiness\" : 50, \"Fed\" : 50}}";
+		
+		ElementTO toBeUpdated = this.jsonMapper.readValue(entityJsonToUpdate, ElementTO.class);
+		
+		this.restTemplate.put(this.url + "/{userPlayground}/{email}/{playground}/{id} ", toBeUpdated, PLAYGROUND_NAME,
+				MANAGER_EMAIL, PLAYGROUND_NAME, actualFullEntity.getPlaygroundAndID().getId());
+		
+		ElementEntity returnedEntityFromDb = this.elementService.getElementById(PLAYGROUND_NAME, MANAGER_EMAIL, PLAYGROUND_NAME, actualFullEntity.getPlaygroundAndID().getId());
+		returnedEntityFromDb.setPlaygroundAndID(null);
+		returnedEntityFromDb.setCreationDate(null);
+		
+		String expectedJson = this.jsonMapper.writeValueAsString(this.jsonMapper.readValue(
+				"{\"playgroundAndID\":null,\"creatorPlayground\":\"TA\",\"creatorEmail\":\"kroyzman@gmail.com\" "
+						+ ",\"x\":1.0,\"y\":1.0,\"creationDate\":null,\"expirationDate\":null,\"type\":\"Tamagotchi\",\"name\":\"ElementUpdateName\""
+						+ ",\"attributes\":{\"Life\" : 50, \"Happiness\" : 50, \"Fed\" : 50}}",
+				ElementEntity.class));
 
-		ElementEntity existingElement = this.jsonMapper.readValue(entityJson, ElementEntity.class);
-
-		ElementEntity rv = this.elementService.addNewElement(playground, email, existingElement);
-
-		String elementToString = "{\"id\":\""+rv.getId()+"\", \"playground\":\"TA\",\"name\":\"Tamagucci\",\"creatorPlayground\":\"TA\",\"creatorEmail\":\"newbenny@ac.il\"}";
-		ElementTO updatedElement = this.jsonMapper.readValue(elementToString, ElementTO.class);
-
-		this.restTemplate.put(this.url + "/{playground}/{id}", updatedElement, playground, rv.getId());
-
-		ElementEntity actualEntity = this.elementService.getElementById(playground, email, playground, rv.getId());
-
-		assertThat(actualEntity).isNotNull().extracting("playground", "id", "name", "creatorEmail")
-				.containsExactly(playground, rv.getId(), "Tamagucci", "newbenny@ac.il");
+		assertThat(this.jsonMapper.writeValueAsString(returnedEntityFromDb)).isEqualTo(expectedJson);
 
 	}
 
 	@Test(expected = Exception.class)
 	public void testUpdateElementWithNonExistingElement() throws Exception {
-		String playground = "TA";
-		String email = "benny@ac.il";
 		String id = "123";
 		
+		String entityJson = "{\"creatorPlayground\":\"TA\",\"creatorEmail\":\"kroyzman@gmail.com\" ,"
+				+ "\"x\":0,\"y\":0 ,\"name\":\"Test\","
+				+ "\"expirationDate\":null,\"type\":\"Tamagotchi\"}";
 		
-		String entityJson = "{\"id\":\"123\", \"playground\":\"TA\",\"name\":\"Tamagotchi\",\"creatorPlayground\":\"TA\",\"creatorEmail\":\"benny@ac.il\"}";
-		ElementTO newEntity = this.jsonMapper.readValue(entityJson, ElementTO.class);
+		ElementEntity entity = this.jsonMapper.readValue(entityJson, ElementEntity.class);
 
-		this.restTemplate.put(this.url + "/{playground}/{id}", newEntity, playground, id);
+		this.restTemplate.put(this.url + "/{userPlayground}/{email}/{playground}/{id} ", entity, PLAYGROUND_NAME,
+				MANAGER_EMAIL, PLAYGROUND_NAME, id);
 	}
+	
+	@Test(expected=Exception.class)
+	public void testManagerFailToUpdateElementsPlayground() throws Exception {
+		
+		String entityJson = "{\"creatorPlayground\":\"TA\",\"creatorEmail\":\"kroyzman@gmail.com\" ,"
+				+ "\"x\":0,\"y\":0 ,\"name\":\"Test\","
+				+ "\"expirationDate\":null,\"type\":\"Tamagotchi\"}";
+		
+		ElementEntity entity = this.jsonMapper.readValue(entityJson, ElementEntity.class);
+		ElementEntity actualFullEntity = this.elementService.addNewElement(PLAYGROUND_NAME, MANAGER_EMAIL, entity);
+		
+		String JsonToUpdate = "{\"creatorPlayground\":\"TA\",\"playground\":\"Failed\",\"creatorEmail\":\"kroyzman@gmail.com\" "
+				+ ",\"location\":{\"x\":1.0,\"y\":1.0},\"name\":\"ElementUpdateName\","
+				+ "\"expirationDate\":null,\"type\":\"Tamagotchi\" ,\"attributes\": {\"Life\" : 50, \"Happiness\" : 50, \"Fed\" : 50}}";
+		
 
+		ElementTO toBeUpdated = this.jsonMapper.readValue(JsonToUpdate, ElementTO.class);
+		toBeUpdated.setId(actualFullEntity.getPlaygroundAndID().getId());
+		this.restTemplate.put(this.url + "/{userPlayground}/{email}/{playground}/{id} ", toBeUpdated, PLAYGROUND_NAME,
+				MANAGER_EMAIL, PLAYGROUND_NAME, actualFullEntity.getPlaygroundAndID().getId());
+
+	}
+	
 	@Test
-	public void testGetElementSuccessfully() throws Exception {
-		String playground = "TA";
+	public void testGetElementByPlayerSuccessfully() throws Exception {
+	
 		String id = "123";
-		String email = "benny@ac.il";
+	
 		
 		ElementEntity addElement = new ElementEntity();
-		addElement.setPlayground(playground);
-		addElement.setId(id);
-		ElementEntity rv = this.elementService.addNewElement(playground, email, addElement);
+		addElement.setPlaygroundAndID(new ElementKey(id,PLAYGROUND_NAME));
+		addElement.setCreationDate(new Date());
+		addElement.setExpirationDate(new Date(2020,1,1));
+		addElement.setType("message_board");
+		//addElement.setId(id);
+		ElementEntity rv = this.elementService.addNewElement(PLAYGROUND_NAME, MANAGER_EMAIL, addElement);
 		
 		ElementTO actualElement = this.restTemplate.getForObject(this.url + "/{playground}/{id}", ElementTO.class,
-				playground, rv.getId());
-		assertThat(actualElement).isNotNull().extracting("playground", "id").containsExactly(playground, rv.getId());
+				PLAYGROUND_NAME, rv.getPlaygroundAndID().getId());
+		assertThat(actualElement).isNotNull().extracting("playground", "id").containsExactly(PLAYGROUND_NAME, rv.getPlaygroundAndID().getId());
 	}
 
 	@Test(expected = Exception.class)
@@ -203,23 +224,37 @@ public class ElementTests {
 		this.restTemplate.getForObject(this.url + "/{playground}/{id}", ElementTO.class, playground, id);
 	}
 
+	
+	
 //get all elements
 	@Test
-	public void testGetAllElementsSuccess() throws Exception {
-		String playground = "TA";
-		String email = "benny@ac.il";
+	public void testGetAllElementsByPlayerFilteredExpDate() throws Exception {
+		String entityJson1 = "{\"creatorEmail\": \"niko@gmail.com\",\"type\":\"Tamagotchi\",\"creatorPlayground\":\"TA\"}";
+		String entityJson2 = "{\"creatorEmail\" :\"niko@gmail.com\",\"type\":\"Tamagotchi\",\"creatorPlayground\":\"TA\"}";
+		String entityJson3 = "{\"creatorEmail\" : \"niko@gmail.com\",\"type\":\"Tamagotchi\",\"creatorPlayground\":\"TA\"}";
+
+		ElementEntity entity1 = this.jsonMapper.readValue(entityJson1, ElementEntity.class);
+		entity1.setExpirationDate(formatter.parse("1-1-2020"));//
 		
+		ElementEntity entity2 = this.jsonMapper.readValue(entityJson2, ElementEntity.class);
+		entity2.setExpirationDate(null);
 		
-		Stream.of("1", "2", "3", "4", "5").map(ElementEntity::new).forEach(t -> {
-			try {
-				this.elementService.addNewElement(playground, email, t);
-			} catch (ElementAlreadyExistsException e) {
-				e.printStackTrace();
-			}
-		});
-		ElementTO[] elements = this.restTemplate.getForObject(this.url + "/all", ElementTO[].class);
-		System.out.println("ASDASDASDASDSA\n" + elements);
-		assertThat(elements).isNotNull().hasSize(5);
+		ElementEntity entity3 = this.jsonMapper.readValue(entityJson3, ElementEntity.class);
+		entity3.setExpirationDate(formatter.parse("1-1-2018"));
+
+		this.elementService.addNewElement(PLAYGROUND_NAME, MANAGER_EMAIL, entity1);
+		this.elementService.addNewElement(PLAYGROUND_NAME, MANAGER_EMAIL, entity2);
+		this.elementService.addNewElement(PLAYGROUND_NAME, MANAGER_EMAIL, entity3);
+
+//				When I Get playground/elements/2019A.shir/dorc@gmail.com/all
+//
+		ElementTO[] actualElements = this.restTemplate.getForObject(this.url + "/{userPlayground}/{email}/all",
+				ElementTO[].class, PLAYGROUND_NAME, PLAYER_EMAIL);
+
+//				Then the response status is 200 and the body is an array of 2 elements
+		
+		System.err.println(actualElements[0] + "-------" + actualElements[1]);
+		assertThat(actualElements).isNotNull().hasSize(2);
 	}
 
 	@Test
@@ -229,7 +264,7 @@ public class ElementTests {
 		
 		
 		ElementEntity e1 = new ElementEntity();
-		e1.setPlayground("Maayan");
+		e1.setPlaygroundAndID("Maayan");
 		e1.setId("123");
 		e1.setCreatorEmail("benny@ac.il");
 		e1.setX(1d);
@@ -241,7 +276,7 @@ public class ElementTests {
 		e1.setCreatorPlayground("TA");
 
 		ElementEntity e2 = new ElementEntity();
-		e2.setPlayground("Maayan");
+		e2.setPlaygroundAndID("Maayan");
 		e2.setCreatorEmail("benny@ac.il");
 		e2.setId("124");
 		e2.setX(2d);
@@ -254,20 +289,20 @@ public class ElementTests {
 
 		ElementEntity e3 = new ElementEntity();
 		e3.setCreatorEmail("benny@ac.il");
-		e3.setPlayground("TA");
+		e3.setPlaygroundAndID("TA");
 		e3.setId("125");
 		e3.setX(10d);
 		e3.setY(10d);
 
 		ElementEntity e4 = new ElementEntity();
-		e4.setPlayground("TA");
+		e4.setPlaygroundAndID("TA");
 		e4.setCreatorEmail("benny@ac.il");
 		e4.setId("126");
 		e4.setX(15d);
 		e4.setY(15d);
 
 		ElementEntity e5 = new ElementEntity();
-		e5.setPlayground("TA");
+		e5.setPlaygroundAndID("TA");
 		e5.setCreatorEmail("benny@ac.il");
 		e5.setId("127");
 		e5.setX(20d);
@@ -304,7 +339,7 @@ public class ElementTests {
 		
 		
 		ElementEntity e1 = new ElementEntity();
-		e1.setPlayground("Maayan");
+		e1.setPlaygroundAndID("Maayan");
 		e1.setId("123");
 		e1.setX(0d);
 		e1.setY(0d);
@@ -315,7 +350,7 @@ public class ElementTests {
 		e1.addAttribute("color", "red");
 
 		ElementEntity e2 = new ElementEntity();
-		e2.setPlayground("Maayan");
+		e2.setPlaygroundAndID("Maayan");
 		e2.setId("124");
 		e2.setName("Message Board");
 		e2.setX(0d);
@@ -325,7 +360,7 @@ public class ElementTests {
 		e2.setType("Pet");
 		e2.addAttribute("color", "blue");
 		ElementEntity e3 = new ElementEntity();
-		e3.setPlayground("TA");
+		e3.setPlaygroundAndID("TA");
 		e3.setId("125");
 		e3.setName("test");
 		e3.addAttribute("color", "blue");

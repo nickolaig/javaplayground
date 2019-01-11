@@ -182,4 +182,15 @@ public class ElementEntity {
 		this.attributes.put(name, value);
 
 	}
+
+
+	@Override
+	public String toString() {
+		return "ElementEntity [playgroundAndID=" + playgroundAndID + ", name=" + name + ", creationDate=" + creationDate
+				+ ", expirationDate=" + expirationDate + ", type=" + type + ", attributes=" + attributes
+				+ ", creatorPlayground=" + creatorPlayground + ", creatorEmail=" + creatorEmail + ", x=" + x + ", y="
+				+ y + "]";
+	}
+	
+	
 }
