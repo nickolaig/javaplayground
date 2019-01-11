@@ -24,8 +24,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import playground.Application;
 import playground.logic.ElementEntity;
+import playground.logic.ElementKey;
 import playground.logic.ElementService;
 import playground.logic.ElementTO;
+import playground.logic.Location;
 import playground.logic.UserEntity;
 import playground.logic.UserKey;
 import playground.logic.UserService;
@@ -39,6 +41,10 @@ public class ElementTests {
 	private String url;
 	private RestTemplate restTemplate;
 	private ObjectMapper jsonMapper;
+	private final static String PLAYGROUND_NAME="TA";
+	private final static String PLAYER_EMAIL = "niko@gmail.com";
+	private final static String MANAGER_EMAIL = "kroyzman@gmail.com";
+	
 	@Autowired
 	private ElementService elementService;
 	@Autowired
@@ -47,7 +53,7 @@ public class ElementTests {
 	@PostConstruct
 	public void init() {
 		this.restTemplate = new RestTemplate();
-		this.url = "http://localhost:" + port + "/playground/elements/TA/benny@ac.il";
+		this.url = "http://localhost:" + port + "/playground/elements";
 
 		// Jackson init
 		this.jsonMapper = new ObjectMapper();
@@ -55,15 +61,13 @@ public class ElementTests {
 
 	@Before
 	public void setup() throws Exception {
-		String creatorPlayground = "TA";
-		String creatorEmail = "benny@ac.il";
-		UserKey userKey = new UserKey(creatorEmail, creatorPlayground);
-
-		// TODO: persisting data --> this lines not needed
-		// create new user and validate his account
-		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
-		currentUser.setIsValidate(true);
-		userService.updateUser(currentUser, userKey);
+		
+		UserEntity playerUser = this.userService.addNewUser(new UserEntity(new UserKey(PLAYER_EMAIL, PLAYGROUND_NAME), "nikos", "niko", "Player", 0L));
+		UserEntity managerUser = this.userService.addNewUser(new UserEntity(new UserKey(MANAGER_EMAIL, PLAYGROUND_NAME), "nadav", "nadi", "Manager", 0L));	
+		
+		this.userService.confirm(PLAYGROUND_NAME, PLAYER_EMAIL, playerUser.getCode());
+		this.userService.confirm(PLAYGROUND_NAME, MANAGER_EMAIL, managerUser.getCode());
+		
 	}
 
 	@After
@@ -79,33 +83,43 @@ public class ElementTests {
 
 	// Create new element
 	@Test
-	public void testCreateElementSuccessfully() throws Exception {
-		String playground = "TA";
-		String id = "32167";
-		String name = "Tamagotchi";
-		String creatorPlayground = "TA";
-		String creatorEmail = "benny@ac.il";
+	public void testManagerCreateElementSuccessfully() throws Exception {
 		
-
-		ElementTO newElement = new ElementTO(playground, id, name, creatorPlayground, creatorEmail);
-		ElementTO rv = this.restTemplate.postForObject(this.url, newElement, ElementTO.class);
-
-		assertThat(rv.getPlayground()).isEqualTo(playground);
-//		assertThat(rv.getId()).isEqualTo(id);
-
-		ElementEntity expectedEntityResult = newElement.toEntity();
-		expectedEntityResult.setId(rv.getId());
-		System.err.println("ID :  " + rv.getId());
-		assertThat(this.elementService.getElementById(creatorPlayground, creatorEmail, playground, rv.getId())).isNotNull().usingComparator((e1, e2) -> {
-			int rvalue = (e1.getPlayground() + e1.getId()).compareTo(e2.getPlayground() + e2.getId());
-			if (rvalue == 0) {
-				rvalue = new Double(e1.getX()).compareTo(e2.getX());
-				if (rvalue == 0) {
-					rvalue = new Double(e1.getY()).compareTo(e2.getY());
-				}
+		String entityJson = "{\"playground\": \"TA\", \"creatorEmail\": \"kroyzman@gmail.com\","
+				+ "\"name\": \"Test\", \"type\": \"Tamagotchi\",\"location\":{\"x\":0 ,\"y\":0}}";
+		
+		ElementTO newElement = this.jsonMapper.readValue(entityJson, ElementTO.class);
+		
+		ElementTO rv = this.restTemplate.postForObject(this.url + "/{userPlayground}/{email}", newElement, ElementTO.class, PLAYGROUND_NAME, MANAGER_EMAIL);
+		
+		
+		ElementEntity expectedEntityResult = rv.toEntity();
+		
+		ElementEntity elementFromDb = this.elementService.getElementById(PLAYGROUND_NAME, MANAGER_EMAIL, PLAYGROUND_NAME, rv.getId());
+		
+		assertThat(elementFromDb).isNotNull()
+		.usingComparator((e1, e2) -> {
+			int rvalue = e1.getPlaygroundAndID().getId().compareTo(e2.getPlaygroundAndID().getId());
+			if(rvalue == 0) {
+				return e1.getPlaygroundAndID().getPlayground().compareTo(e2.getPlaygroundAndID().getPlayground());
 			}
 			return rvalue;
-		}).isEqualTo(expectedEntityResult);
+		}).isEqualToIgnoringGivenFields(expectedEntityResult, "creationDate");
+	}
+	
+	@Test(expected = Exception.class)
+	public void testPlayerCreateElementFailed() throws Exception {
+
+		String entityJson = "{\"playground\": \"TA\", \"creatorEmail\": \"niko@gmail.com\","
+				+ "\"name\": \"Test\", \"type\": \"Tamagotchi\",\"location\":{\"x\":0 ,\"y\":0}}";
+
+		ElementTO newElement = this.jsonMapper.readValue(entityJson, ElementTO.class);
+
+		ElementTO rv = this.restTemplate.postForObject(this.url + "/{userPlayground }/{email}",
+				newElement, ElementTO.class, PLAYGROUND_NAME, PLAYER_EMAIL);
+	
+//		Then the return status is <>2xx
+
 	}
 
 	@Test(expected = Exception.class)

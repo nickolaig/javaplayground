@@ -42,7 +42,9 @@ public class WriteMessagePlugin implements PlaygroundPlugin {
 		String plPlayground = activity.getPlayerPlayground();
 		String plEmail = activity.getPlayerEmail();
 		UserKey userKey = new UserKey(plEmail,plPlayground);
+		
 		Message value = this.jackson.readValue(activity.getJsonAttributes(), Message.class);
+		
 		UserEntity currentUser = user.getUserByEmailAndPlayground(userKey);
 		currentUser.setPoints(currentUser.getPoints() + 2);
 		user.updateUser(currentUser, userKey);

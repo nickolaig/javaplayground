@@ -9,8 +9,10 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import playground.aop.CheckValidActionByRule;
 import playground.aop.MyLog;
 import playground.aop.ValidationManagerLog;
+import playground.aop.checkForUserConfirmation;
 import playground.dal.ElementDao;
 import playground.dal.IdGeneratorDao;
 import playground.logic.ElementEntity;
@@ -27,6 +29,7 @@ public class JpaElementService implements ElementService {
 	private ElementDao elements;
 	private IdGeneratorDao idGenerator;
 	private final static String PLAYGROUND_NAME="TA";
+	
 	@Autowired
 	public JpaElementService(ElementDao elements, IdGeneratorDao idGenerator) {
 		this.elements = elements;
@@ -36,16 +39,25 @@ public class JpaElementService implements ElementService {
 	@Override
 	@Transactional
 	@MyLog
-	@ValidationManagerLog
+	@checkForUserConfirmation
+	@CheckValidActionByRule(role="Player")
 	public ElementEntity addNewElement(String userPlayground, String email, ElementEntity element) throws ElementAlreadyExistsException {
 			IdGenerator tmp = this.idGenerator.save(new IdGenerator());
 			Long dummyId = tmp.getId();
 			this.idGenerator.delete(tmp);
 
-			element.setPlaygroundAndID(new ElementKey(PLAYGROUND_NAME,dummyId.toString()));
+			element.setPlaygroundAndID(new ElementKey(dummyId.toString(), PLAYGROUND_NAME));
 			element.setCreatorEmail(email);
 			element.setCreatorPlayground(userPlayground);
 			
+			switch (element.getType()) {
+				case "message_board":element.getAttributes().put("msgCount", 0)	;
+					break;
+				case "Tamagotchi":element.getAttributes().put("Life",100);
+								element.getAttributes().put("Happiness", 50);
+								element.getAttributes().put("Fed", 50);
+					break;
+			}
 			
 			
 			System.err.println("IN GENERATOR ID: " + element.getPlaygroundAndID().getId());
@@ -54,11 +66,10 @@ public class JpaElementService implements ElementService {
 
 	@Override
 	@Transactional(readOnly = true)
-	@MyLog
 	public ElementEntity getElementById(String userPlayground, String email, String playground, String id) throws NoSuchElementID {
 
 		// ElementEntity rv = this.elements.get(playground+id);
-		ElementEntity rv = this.elements.findById(id).orElseThrow(() -> new NoSuchElementID("No element with " + id));
+		ElementEntity rv = this.elements.findById(new ElementKey(id, userPlayground)).orElseThrow(() -> new NoSuchElementID("No element with " + id));
 		return rv;
 	}
 

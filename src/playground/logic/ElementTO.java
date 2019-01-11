@@ -21,7 +21,9 @@ public class ElementTO {
 	private String creatorEmail;
 
 	public ElementTO() {
-
+		this.creationDate = new Date();
+		this.attributes = new HashMap<>();
+		this.location = new Location(0, 0);
 	}
 
 	public ElementTO(ElementEntity element) {
@@ -49,6 +51,8 @@ public class ElementTO {
 			this.creatorEmail = element.getCreatorEmail();
 		}
 	}
+	
+	
 
 	public ElementTO(String playground, String id, String name, String creatorPlayground, String creatorEmail) {
 		this.playground = playground;
@@ -59,7 +63,6 @@ public class ElementTO {
 		this.expirationDate = null;
 		this.creatorPlayground = creatorPlayground;
 		this.creatorEmail = creatorEmail;
-		this.type = "pet";
 		this.attributes = new HashMap<>();
 	}
 
@@ -170,13 +173,23 @@ public class ElementTO {
 
 	public ElementEntity toEntity() {
 		if (this.location != null)
-			return new ElementEntity(new ElementKey(this.playground, this.id), this.location.getX(), this.location.getY(), this.name,
+			return new ElementEntity(new ElementKey(this.id, this.playground), this.location.getX(), this.location.getY(), this.name,
 					this.creationDate, this.expirationDate, this.type, this.attributes, this.creatorPlayground,
 					this.creatorEmail);
 
-		return new ElementEntity(new ElementKey(this.playground, this.id), null, null, this.name, this.creationDate,
+		return new ElementEntity(new ElementKey(this.id, this.playground), null, null, this.name, this.creationDate,
 				this.expirationDate, this.type, this.attributes, this.creatorPlayground, this.creatorEmail);
 
 	}
+
+	@Override
+	public String toString() {
+		return "ElementTO [playground=" + playground + ", id=" + id + ", location=" + location + ", name=" + name
+				+ ", creationDate=" + creationDate + ", expirationDate=" + expirationDate + ", type=" + type
+				+ ", attributes=" + attributes + ", creatorPlayground=" + creatorPlayground + ", creatorEmail="
+				+ creatorEmail + "]";
+	}
+	
+	
 
 }

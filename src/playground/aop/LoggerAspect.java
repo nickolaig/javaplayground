@@ -22,19 +22,16 @@ import playground.logic.exceptions.UserNotFoundException;
 @Aspect
 public class LoggerAspect {
 	private Log log = LogFactory.getLog(LoggerAspect.class);
-	private UserService userService;
 
-	@Autowired
-	public void setUserService(UserService userService) {
-		this.userService = userService;
-	}
 	
 	@Around("@annotation(playground.aop.MyLog)")
 	public Object log (ProceedingJoinPoint joinPoint) throws Throwable {
+		
 		String className = joinPoint.getTarget().getClass().getSimpleName();
 		String methodName = joinPoint.getSignature().getName();
+		
 		String methodSignature = className + "." + methodName + "()";
-//		System.err.println(methodSignature + " - start");
+
 		log.info(methodSignature + " - start ******************");
 		
 		try {
@@ -42,55 +39,55 @@ public class LoggerAspect {
 			log.info(methodSignature + " - ended successfully **********************");
 			return rv;
 		} catch (Throwable e) {
-			log.error(methodSignature + " - end with error " + e.getClass().getName());
+			log.info(methodSignature + " - end with error " + e.getClass().getName());
 			throw e;
 		}
 	}
 	
-	@Around("@annotation(playground.aop.MyLog) && args(userPlayground, email,..)")
-	public Object log (ProceedingJoinPoint joinPoint, String userPlayground, String email) throws Throwable {
-		log.info("userPlayground: " + userPlayground + ", email: " + email);
-		
-		try {
-			//check if user exists
-			UserEntity user = userService.getUserByEmailAndPlayground(new UserKey(email, userPlayground));
-			
-			//check for confirmation
-			if(!user.getIsValidate()) {
-				throw new UserNotConfirmedException("User not confirmed in the system yet...");
-			}
-			
-			//check if hes authorized
-			if(!user.getRole().equalsIgnoreCase("manager")) {
-				throw new UserNotAuthorizedException("User does not authorized for that action");
-			}
-			
-		} catch(RuntimeException e) {
-			throw new RuntimeException(e);
-		}
-		
-		return joinPoint.proceed();
-	}
-	
-	@Around("@annotation(playground.aop.ValidationManagerLog) && args(userPlayground, email,..)")
-	public Object logValidateManagerAction (ProceedingJoinPoint joinPoint, String userPlayground, String email) throws Throwable {
-		log.info("userPlayground: " + userPlayground + ", email: " + email);
-		
-		
-		try {
-			UserEntity user = userService.getUserByEmailAndPlayground(new UserKey(email, userPlayground));
-			
-			//check if hes authorized
-			if(!user.getRole().equalsIgnoreCase("manager")) {
-				throw new UserNotAuthorizedException("User does not authorized for that action");
-			}
-			
-		} catch(RuntimeException e) {
-			throw new RuntimeException(e);
-		}
-		
-		return joinPoint.proceed();
-	}
+//	@Around("@annotation(playground.aop.MyLog) && args(userPlayground, email,..)")
+//	public Object log (ProceedingJoinPoint joinPoint, String userPlayground, String email) throws Throwable {
+//		log.info("userPlayground: " + userPlayground + ", email: " + email);
+//		
+//		try {
+//			//check if user exists
+//			UserEntity user = userService.getUserByEmailAndPlayground(new UserKey(email, userPlayground));
+//			
+//			//check for confirmation
+//			if(!user.getIsValidate()) {
+//				throw new UserNotConfirmedException("User not confirmed in the system yet...");
+//			}
+//			
+//			//check if hes authorized
+//			if(!user.getRole().equalsIgnoreCase("manager")) {
+//				throw new UserNotAuthorizedException("User does not authorized for that action");
+//			}
+//			
+//		} catch(RuntimeException e) {
+//			throw new RuntimeException(e);
+//		}
+//		
+//		return joinPoint.proceed();
+//	}
+//	
+//	@Around("@annotation(playground.aop.ValidationManagerLog) && args(userPlayground, email,..)")
+//	public Object logValidateManagerAction (ProceedingJoinPoint joinPoint, String userPlayground, String email) throws Throwable {
+//		log.info("userPlayground: " + userPlayground + ", email: " + email);
+//		
+//		
+//		try {
+//			UserEntity user = userService.getUserByEmailAndPlayground(new UserKey(email, userPlayground));
+//			
+//			//check if hes authorized
+//			if(!user.getRole().equalsIgnoreCase("manager")) {
+//				throw new UserNotAuthorizedException("User does not authorized for that action");
+//			}
+//			
+//		} catch(RuntimeException e) {
+//			throw new RuntimeException(e);
+//		}
+//		
+//		return joinPoint.proceed();
+//	}
 	
 //	@Around("@annotation(playground.aop.ValidationPlayerLog) && args(userPlayground, email,..)")
 //	public Object logValidatePlayerAction (ProceedingJoinPoint joinPoint, String userPlayground, String email) throws Throwable {

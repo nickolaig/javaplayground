@@ -53,17 +53,14 @@ public class webElementController {
 
 	@RequestMapping(method = RequestMethod.PUT, path = "/playground/elements/{userPlayground}/{email}/{playground}/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public void updateElement(@PathVariable("userPlayground") String userPlayground,
-			@PathVariable("email") String email, @PathVariable("id") String id, @RequestBody ElementTO element)
+			@PathVariable("email") String email, @PathVariable("id") String id, @PathVariable("playground") String playground, @RequestBody ElementTO element)
 			throws Exception {
+		
 		ElementTO et = new ElementTO(element.getPlayground(), element.getId(), element.getLocation(), element.getName(),
 				element.getCreationDate(), element.getExpirationDate(), element.getType(), element.getAttributes(),
 				element.getCreatorPlayground(), element.getCreatorEmail());
 
-		if (this.elementService.getElementById(userPlayground, email, et.getPlayground(), et.getId()) == null) {
-			throw new Exception("No Such Element");
-		} else {
-			this.elementService.updateElementById(userPlayground, email, et.getPlayground(), et.getId(), et.toEntity());
-		}
+		this.elementService.updateElementById(userPlayground, email, playground, id, element.toEntity());
 	}
 
 	@RequestMapping(method = RequestMethod.GET, path = "/playground/elements/{userPlayground}/{email}/{playground}/{id}", produces = MediaType.APPLICATION_JSON_VALUE)

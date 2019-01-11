@@ -22,8 +22,6 @@ public class ElementEntity {
 
 	private ElementKey playgroundAndID;
 
-
-
 	// private Location location;
 	private String name;
 	private Date creationDate;
@@ -37,7 +35,11 @@ public class ElementEntity {
 
 
 	public ElementEntity() {
-
+		this.creationDate = new Date();
+		this.expirationDate = null;
+		this.attributes = new HashMap<>();
+		this.x=(double) 0;
+		this.y=(double) 0;
 	}
 
 
@@ -46,7 +48,6 @@ public class ElementEntity {
 			String creatorEmail) {
 		super();
 		this.playgroundAndID = playgroundAndID;
-
 		this.x = x;
 		this.y = y;
 		this.name = name;
