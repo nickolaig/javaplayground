@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Lob;
@@ -19,8 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Table(name = "ELEMENTS")
 public class ElementEntity {
 
-	private String playground;
-	private String id;
+	private ElementKey playgroundAndID;
+
+
+
 	// private Location location;
 	private String name;
 	private Date creationDate;
@@ -32,25 +35,18 @@ public class ElementEntity {
 	private Double x;
 	private Double y;
 
-	private String number;
 
 	public ElementEntity() {
 
 	}
 
-	public ElementEntity(String id) {
-		setPlayground("Test");
-		this.attributes = new HashMap<>();
-		this.id = id;
 
-	}
-
-	public ElementEntity(String playground, String id, Double x, Double y, String name, Date creationDate,
+	public ElementEntity(ElementKey playgroundAndID, Double x, Double y, String name, Date creationDate,
 			Date expirationDate, String type, Map<String, Object> attributes, String creatorPlayground,
 			String creatorEmail) {
 		super();
-		this.playground = playground;
-		this.id = id;
+		this.playgroundAndID = playgroundAndID;
+
 		this.x = x;
 		this.y = y;
 		this.name = name;
@@ -62,32 +58,14 @@ public class ElementEntity {
 		this.creatorEmail = creatorEmail;
 
 	}
-
-	public String getPlayground() {
-		return playground;
+	@EmbeddedId
+	public ElementKey getPlaygroundAndID() {
+		return playgroundAndID;
 	}
 
-	public void setPlayground(String playground) {
-		this.playground = playground;
+	public void setPlaygroundAndID(ElementKey playgroundAndID) {
+		this.playgroundAndID = playgroundAndID;
 	}
-
-	@Id
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-
-	}
-
-	/*
-	 * public Location getLocation() { return location; } public void
-	 * setLocation(Location location) { this.location = location;
-	 * this.attributes.put("location", this.location);
-	 * 
-	 * }
-	 */
 	public String getName() {
 		return name;
 	}
@@ -188,23 +166,15 @@ public class ElementEntity {
 	public ElementTO toElementTO() {
 		ElementTO et;
 		if (this.x != null && this.y != null)
-			et = new ElementTO(this.getPlayground(), this.getId(), new Location(this.x, this.y), this.getName(),
+			et = new ElementTO(this.playgroundAndID.getPlayground(), this.playgroundAndID.getId(), new Location(this.x, this.y), this.getName(),
 					this.getCreationDate(), this.getExpirationDate(), this.getType(), this.getAttributes(),
 					this.getCreatorPlayground(), this.getCreatorEmail());
 		else
-			et = new ElementTO(this.getPlayground(), this.getId(), null, this.getName(), this.getCreationDate(),
+			et = new ElementTO(this.playgroundAndID.getPlayground(), this.playgroundAndID.getId(), null, this.getName(), this.getCreationDate(),
 					this.getExpirationDate(), this.getType(), this.getAttributes(), this.getCreatorPlayground(),
 					this.getCreatorEmail());
 		return et;
 
-	}
-
-	public String getNumber() {
-		return number;
-	}
-
-	public void setNumber(String number) {
-		this.number = number;
 	}
 
 	public void addAttribute(String name, Object value) {

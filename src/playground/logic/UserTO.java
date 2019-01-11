@@ -12,6 +12,7 @@ public class UserTO {
 	private String role;
 	private long points;
 	private boolean isValidate;
+	private boolean isEnabled;
 	private int code;
 	
 	public UserTO() {
@@ -26,6 +27,7 @@ public class UserTO {
 		this.avatar = avatar;
 		this.role = role;
 		this.points = 0;
+		this.isEnabled = true;
 		this.isValidate = false;
 	}
 	
@@ -40,6 +42,7 @@ public class UserTO {
 			this.points = user.getPoints();
 			this.isValidate = user.getIsValidate();
 			this.code = user.getCode();
+			this.isEnabled = user.isEnabled();
 		}
 	}
 
@@ -99,6 +102,15 @@ public class UserTO {
 		this.isValidate = isValidate;
 	}
 
+	
+	public boolean isEnabled() {
+		return isEnabled;
+	}
+
+	public void setEnabled(boolean isEnabled) {
+		this.isEnabled = isEnabled;
+	}
+
 	public int getCode() {
 		return code;
 	}
@@ -116,24 +128,8 @@ public class UserTO {
 		rv.setUserName(this.userName);
 		rv.setIsValidate(this.isValidate);
 		rv.setCode(this.code);
+		rv.setEnabled(this.isEnabled);
 		return rv;
 	}
-	
-//	private int generateCode() {
-//		int minRange = 0;
-//		int maxRange = 9;
-//		int generatedCode = 1;
-//
-//		int randomNumLength = ThreadLocalRandom.current().nextInt(minRange, maxRange + 1);
-//		int randomDigit;
-//		
-//		for(int i = 0 ; i < randomNumLength ; i++) {
-//			randomDigit = ThreadLocalRandom.current().nextInt(minRange, maxRange + 1);
-//			generatedCode *= Math.pow(10, i);
-//			generatedCode += randomDigit; 
-//		}
-//		
-//		return generatedCode;
-//	}
 	
 }

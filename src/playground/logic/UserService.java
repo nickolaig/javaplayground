@@ -8,4 +8,6 @@ public interface UserService {
 	public UserEntity getUserByEmailAndPlayground(UserKey userKey) throws Exception;
 	public void cleanup();
 	public void updateUser(UserEntity entityUpdates, UserKey userEmailPlaygroundKey) throws Exception;
+
+	public UserEntity confirm(String playground, String email, int code) throws Exception;
 }

@@ -17,7 +17,9 @@ public class UserEntity {
 	private Long points;
 	private Integer code;
 	private Boolean isValidate;
-	
+	private Boolean isEnabled;
+
+
 	public UserEntity() {
 		// TODO Auto-generated constructor stub
 	}
@@ -29,8 +31,8 @@ public class UserEntity {
 		this.avatar = avatar;
 		this.role = role;
 		this.points = points;
-		this.code = generateCode();
 		this.isValidate = false;
+		this.isEnabled=true;
 	}
 
 	public String getUserName() {
@@ -48,7 +50,13 @@ public class UserEntity {
 	public void setAvatar(String avatar) {
 		this.avatar = avatar;
 	}
+	public Boolean isEnabled() {
+		return isEnabled;
+	}
 
+	public void setEnabled(Boolean isEnabled) {
+		this.isEnabled = isEnabled;
+	}
 	public String getRole() {
 		return role;
 	}
@@ -90,20 +98,4 @@ public class UserEntity {
 		this.isValidate = isValidate;
 	}
 
-	private Integer generateCode() {
-		int minRange = 0;
-		int maxRange = 9;
-		int generatedCode = 0;
-
-		int randomNumLength = ThreadLocalRandom.current().nextInt(minRange, maxRange + 1);
-		int randomDigit;
-		
-		for(int i = 0 ; i < randomNumLength ; i++) {
-			randomDigit = ThreadLocalRandom.current().nextInt(minRange, maxRange + 1);
-			generatedCode += Math.pow(10, i);
-			generatedCode += randomDigit; 
-		}
-		
-		return generatedCode;
-	}
 }

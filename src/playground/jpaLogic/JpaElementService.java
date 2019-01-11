@@ -14,6 +14,7 @@ import playground.aop.ValidationManagerLog;
 import playground.dal.ElementDao;
 import playground.dal.IdGeneratorDao;
 import playground.logic.ElementEntity;
+import playground.logic.ElementKey;
 import playground.logic.ElementService;
 import playground.logic.ElementTO;
 import playground.logic.Location;
@@ -25,7 +26,7 @@ public class JpaElementService implements ElementService {
 
 	private ElementDao elements;
 	private IdGeneratorDao idGenerator;
-
+	private final static String PLAYGROUND_NAME="TA";
 	@Autowired
 	public JpaElementService(ElementDao elements, IdGeneratorDao idGenerator) {
 		this.elements = elements;
@@ -37,17 +38,18 @@ public class JpaElementService implements ElementService {
 	@MyLog
 	@ValidationManagerLog
 	public ElementEntity addNewElement(String userPlayground, String email, ElementEntity element) throws ElementAlreadyExistsException {
-		if (!this.elements.existsById(element.getId())) {
 			IdGenerator tmp = this.idGenerator.save(new IdGenerator());
 			Long dummyId = tmp.getId();
 			this.idGenerator.delete(tmp);
 
-			element.setId("" + dummyId);
-			System.err.println("IN GENERATOR ID: " + element.getId());
+			element.setPlaygroundAndID(new ElementKey(PLAYGROUND_NAME,dummyId.toString()));
+			element.setCreatorEmail(email);
+			element.setCreatorPlayground(userPlayground);
+			
+			
+			
+			System.err.println("IN GENERATOR ID: " + element.getPlaygroundAndID().getId());
 			return this.elements.save(element);
-		} else {
-			throw new ElementAlreadyExistsException("element exists with id " + element.getId());
-		}
 	}
 
 	@Override

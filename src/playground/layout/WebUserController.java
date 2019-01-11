@@ -21,7 +21,8 @@ public class WebUserController {
 	private UserTO user;
 	private NewUserForm userForm;
 	private UserService userService;
-
+	private static final String DEFAULT_PLAYGROUND = "TA";
+	
 	@Autowired
 	public void setUserService(UserService userService) {
 		this.userService = userService;
@@ -47,9 +48,9 @@ public class WebUserController {
 
 	@RequestMapping(method = RequestMethod.POST, path = "/playground/users", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public UserTO registerNewUser(@RequestBody NewUserForm userForm) throws Exception {
-		String playground = "Nadi";
 		
-		UserTO returnedUser = new UserTO(userForm.getEmail(), playground, userForm.getUserName(), userForm.getAvatar(),
+		validateEmail(userForm.getEmail());
+		UserTO returnedUser = new UserTO(userForm.getEmail(), DEFAULT_PLAYGROUND, userForm.getUserName(), userForm.getAvatar(),
 				userForm.getRole());
 		return new UserTO(userService.addNewUser(returnedUser.toEntity()));
 	}
@@ -62,7 +63,9 @@ public class WebUserController {
 		
 		if (code == currentUser.getCode()) {
 			currentUser.setIsValidate(true);
-			//this.userService.updateUser(currentUser.getUserEmailPlaygroundKey(), currentUser);
+			
+			this.userService.updateUser(currentUser, currentUser.getUserEmailPlaygroundKey());
+			
 			return new UserTO(currentUser);
 		} else {
 			throw new Exception("Invalid code");
@@ -86,6 +89,13 @@ public class WebUserController {
 	public void updateUserDetails(@PathVariable("playground") String playground, @PathVariable("email") String email,
 			@RequestBody UserTO newUser) throws Exception {
 		this.userService.updateUser(newUser.toEntity(), new UserKey(email, playground));
+	}
+	
+	private void validateEmail(String email) throws Exception {
+		if ("null".equals(email) || email == null || email.equals("")) {
+			throw new UserIncorrectEmail("Email cant be null or empty");
+		}
+		
 	}
 
 }

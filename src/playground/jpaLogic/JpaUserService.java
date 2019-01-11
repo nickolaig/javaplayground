@@ -1,5 +1,7 @@
 package playground.jpaLogic;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,14 +12,17 @@ import playground.dal.UserDao;
 import playground.logic.UserEntity;
 import playground.logic.UserKey;
 import playground.logic.UserService;
+import playground.logic.exceptions.InvalidInputException;
 import playground.logic.exceptions.UserAlreadyExistsException;
 import playground.logic.exceptions.UserNotFoundException;
+import playground.logic.exceptions.ValidCodeIncorrectExeption;
 
 @Service("UserService")
 public class JpaUserService implements UserService {
 	private UserDao users;
 	private IdGeneratorDao idGenerator;
-
+	
+	
 	@Autowired
 	public JpaUserService(UserDao users, IdGeneratorDao idGenerator) {
 		this.users = users;
@@ -30,25 +35,41 @@ public class JpaUserService implements UserService {
 	public UserEntity addNewUser(UserEntity user) throws Exception {
 		UserKey userEmailPlaygroundKey = new UserKey(user.getUserEmailPlaygroundKey().getEmail(),
 				user.getUserEmailPlaygroundKey().getPlayground());
+		
 		if (this.users.existsById(userEmailPlaygroundKey)) {
 			throw new UserAlreadyExistsException("User exists with email: " + userEmailPlaygroundKey.getEmail()
 					+ " in playground: " + userEmailPlaygroundKey.getPlayground());
 		}
-
-		if (!userEmailPlaygroundKey.getEmail().endsWith("ac.il")) {
-			throw new Exception("email is incorrect");
-		}
-
-//		IdGenerator tmp = this.idGenerator.save(new IdGenerator());
-//		Long dummyId = tmp.getId();
-//		this.idGenerator.delete(tmp);
+		
+		user.setCode(generateCode());
+		System.err.println(user.getCode());
+		user.setIsValidate(false);
 
 		return this.users.save(user);
+		
+		//TODO: SEND CODE TO USER!!!
 	}
+	@Override
+	@Transactional
+	public UserEntity confirm(String playground, String email, int code) throws Exception {
 
+		UserEntity rv = this.getUserByEmailAndPlayground(new UserKey(email, playground));
+
+		if (rv != null) {
+			if (rv.getCode()== code) {
+				rv.setIsValidate(true);
+
+				return this.users.save(rv);
+			} else {
+				throw new ValidCodeIncorrectExeption("The valid code is not correct!");
+			}
+		} else {
+			throw new InvalidInputException("no user found for email : " + email);
+		}
+	}
+	
 	@Override
 	@Transactional(readOnly = true)
-	@MyLog
 	public UserEntity getUserByEmailAndPlayground(UserKey userKey) throws Exception {
 
 		return this.users.findById(userKey)
@@ -67,41 +88,99 @@ public class JpaUserService implements UserService {
 	@Transactional
 	@MyLog
 	public void updateUser(UserEntity entityUpdates, UserKey userEmailPlaygroundKey ) throws Exception {
-
+		boolean isSelfUpdate;
+		
 		// if isnt existing throw exception
-		UserEntity existing = this.users.findById(userEmailPlaygroundKey).orElseThrow(
-				() -> new UserNotFoundException("No such user with email: " + userEmailPlaygroundKey.getEmail()
-						+ " and playground: " + userEmailPlaygroundKey.getPlayground()));
+		UserEntity existing = this.getUserByEmailAndPlayground(userEmailPlaygroundKey);
+		UserEntity existingOldUser=null;
+		
+		//check if its update for the same user
+		if(existing.getUserEmailPlaygroundKey().getEmail().equals(entityUpdates.getUserEmailPlaygroundKey().getEmail()) && 
+		 existing.getUserEmailPlaygroundKey().getPlayground().equals(entityUpdates.getUserEmailPlaygroundKey().getPlayground())){
+			isSelfUpdate=true;
+		}
+		else {
+			isSelfUpdate=false;
+			existingOldUser=this.getUserByEmailAndPlayground(entityUpdates.getUserEmailPlaygroundKey());
+		}
+		
+		switch (existing.getRole()) {
+		case "Manager":
+			if(isSelfUpdate) {
+				if (entityUpdates.getUserName() != null && !entityUpdates.getUserName() .equals( existing.getUserName())) {
+					existing.setUserName(entityUpdates.getUserName());
+				}
 
-		if (entityUpdates.getUserName() != null & entityUpdates.getUserName() != existing.getUserName()) {
-			existing.setUserName(entityUpdates.getUserName());
+				if (entityUpdates.getAvatar() != null && !entityUpdates.getAvatar() .equals( existing.getAvatar())) {
+					existing.setAvatar(entityUpdates.getAvatar());
+				}
+
+				if (entityUpdates.getRole() != null && entityUpdates.getRole() != existing.getRole()) {
+					existing.setRole(entityUpdates.getRole());
+					existing.setPoints(0L);
+				}
+				this.users.save(existing);
+
+			} else {
+				if (entityUpdates.getUserName() != null && !entityUpdates.getUserName().equals(existingOldUser.getUserName())) {
+					throw new Exception("Manager can't update player username");
+				}
+
+				if (entityUpdates.getAvatar() != null && !entityUpdates.getAvatar().equals(existingOldUser.getAvatar())) {
+					throw new Exception("Manager can't update player avatar");
+				}
+
+				if (entityUpdates.getRole() != null && !entityUpdates.getRole().equals(existingOldUser.getRole())) {
+					throw new Exception("Manager can't update player role");
+				}
+				
+				if (entityUpdates.getPoints() != null && entityUpdates.getPoints() != existingOldUser.getPoints()) {
+					existingOldUser.setPoints(entityUpdates.getPoints());
+				}
+				if (entityUpdates.isEnabled() != null && entityUpdates.isEnabled() != existingOldUser.isEnabled()) {
+					existingOldUser.setEnabled(!existingOldUser.isEnabled());
+				}
+				this.users.save(existingOldUser);
+			}
+			break;
+		
+		case "Player":
+			if(isSelfUpdate) {
+				if (entityUpdates.getUserName() != null &! entityUpdates.getUserName().equals( existing.getUserName())) {
+					existing.setUserName(entityUpdates.getUserName());
+				}
+
+				if (entityUpdates.getAvatar() != null & !entityUpdates.getAvatar() .equals( existing.getAvatar())) {
+					existing.setAvatar(entityUpdates.getAvatar());
+				}
+
+				if (entityUpdates.getRole() != null & !entityUpdates.getRole() .equals(existing.getRole())) {
+					existing.setRole(entityUpdates.getRole());
+					existing.setPoints(0L);
+				}
+				this.users.save(existing);
+			} else {
+				throw new Exception("Player Cant Update Another User!");
+			}
+			break;
 		}
 
-		if (entityUpdates.getAvatar() != null & entityUpdates.getAvatar() != existing.getAvatar()) {
-			existing.setAvatar(entityUpdates.getAvatar());
-		}
-
-		if (entityUpdates.getRole() != null & entityUpdates.getRole() != existing.getRole()) {
-			existing.setRole(entityUpdates.getRole());
-		}
-
-		if (entityUpdates.getPoints() != null & entityUpdates.getPoints() != existing.getPoints()) {
-			existing.setPoints(entityUpdates.getPoints());
-		}
-
-		if (entityUpdates.getCode() != null & entityUpdates.getCode() != existing.getCode()) {
-			existing.setCode(entityUpdates.getCode());
-		}
-
-		if (entityUpdates.getCode() != null & entityUpdates.getCode() != existing.getCode()) {
-			existing.setCode(entityUpdates.getCode());
-		}
-
-		if (entityUpdates.getIsValidate() != null & entityUpdates.getIsValidate() != existing.getIsValidate()) {
-			existing.setIsValidate(entityUpdates.getIsValidate());
-		}
-
-		this.users.save(existing);
 	}
+	
+	private int generateCode() {
+		int minRange = 0;
+		int maxRange = 9;
+		int generatedCode = 0;
 
+		int randomNumLength = ThreadLocalRandom.current().nextInt(minRange, maxRange + 1);
+		int randomDigit;
+		
+		for(int i = 0 ; i < randomNumLength ; i++) {
+			randomDigit = ThreadLocalRandom.current().nextInt(minRange, maxRange + 1);
+			generatedCode += Math.pow(10, i);
+			generatedCode += randomDigit; 
+		}
+		
+		return generatedCode;
+	}
 }

@@ -26,8 +26,8 @@ public class ElementTO {
 
 	public ElementTO(ElementEntity element) {
 		if (element.getX() != null && element.getY() != null) {
-			this.playground = element.getPlayground();
-			this.id = element.getId();
+			this.playground = element.getPlaygroundAndID().getPlayground();
+			this.id = element.getPlaygroundAndID().getId();
 			this.location = new Location(element.getX(), element.getY());
 			this.name = element.getName();
 			this.creationDate = element.getCreationDate();
@@ -37,8 +37,8 @@ public class ElementTO {
 			this.creatorPlayground = element.getCreatorPlayground();
 			this.creatorEmail = element.getCreatorEmail();
 		} else {
-			this.playground = element.getPlayground();
-			this.id = element.getId();
+			this.playground = element.getPlaygroundAndID().getPlayground();
+			this.id = element.getPlaygroundAndID().getId();
 			this.location = null;
 			this.name = element.getName();
 			this.creationDate = element.getCreationDate();
@@ -170,11 +170,11 @@ public class ElementTO {
 
 	public ElementEntity toEntity() {
 		if (this.location != null)
-			return new ElementEntity(this.playground, this.id, this.location.getX(), this.location.getY(), this.name,
+			return new ElementEntity(new ElementKey(this.playground, this.id), this.location.getX(), this.location.getY(), this.name,
 					this.creationDate, this.expirationDate, this.type, this.attributes, this.creatorPlayground,
 					this.creatorEmail);
 
-		return new ElementEntity(this.playground, this.id, null, null, this.name, this.creationDate,
+		return new ElementEntity(new ElementKey(this.playground, this.id), null, null, this.name, this.creationDate,
 				this.expirationDate, this.type, this.attributes, this.creatorPlayground, this.creatorEmail);
 
 	}
