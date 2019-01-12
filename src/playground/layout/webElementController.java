@@ -93,41 +93,35 @@ public class webElementController {
 
 	@RequestMapping(method = RequestMethod.GET, path = "/playground/elements/{userPlayground}/{email}/near/{x}/{y}/{distance}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ElementTO[] viewAllElementsClosestToDistance(@PathVariable("userPlayground") String userPlayground,
-			@PathVariable("email") String email, @PathVariable("x") double x, @PathVariable("y") double y,
-			@PathVariable("distance") double distance) throws Exception {
+			@PathVariable("email") String email,
+			@PathVariable("x") double x,
+			@PathVariable("y") double y,
+			@PathVariable("distance") double distance,
+			@RequestParam(name="size", required=false, defaultValue="10") int size, 
+			@RequestParam(name="page", required=false, defaultValue="0") int page) throws Exception {
+		
+		return this.elementService.getNearElements(userPlayground,email,size,page,x,y,distance)
+				.stream()
+				.map(ElementTO::new)
+				.collect(Collectors.toList())
+				.toArray(new ElementTO[0]);
 
-		return this.elementService.getDistanceElements(x, y, distance);
+	
 	}
 
 	@RequestMapping(method = RequestMethod.GET, path = "/playground/elements/{userPlayground}/{email}/search/{attributeName}/{value}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ElementTO[] searchElementsByAttributeValue(@PathVariable("userPlayground") String userPlayground,
-			@PathVariable("email") String email, @PathVariable("attributeName") String attributeName,
-			@PathVariable("value") String value) {
-//		
-//		HashMap<String, Object> attributesForCorrectCheck = new HashMap<String, Object>();
-//		attributesForCorrectCheck.put("Color", "Blue");
-//		
-//		HashMap<String, Object> attributesForFalseCheck = new HashMap<String, Object>();
-//		attributesForFalseCheck.put("Color", "Yellow");
-//		
-//		List<ElementTO> elements = Arrays.asList(
-//				new ElementTO("Maayan", "123", new Location(), "Tamagotchi", new Date(), new Date(2020, 10, 12), "Pet", attributesForCorrectCheck , userPlayground, email),
-//				new ElementTO("Maayan", "124", new Location(), "Message Board", new Date(), new Date(2020, 10, 12), "Pet", attributesForCorrectCheck , userPlayground, email),
-//				new ElementTO("Maayan", "125", new Location(), "Race Car", new Date(), new Date(2020, 10, 12), "Pet", attributesForFalseCheck , userPlayground, email)
-//				);
-//		
-//		ArrayList<ElementTO> correctElements = new ArrayList<>();
-//		
-//		attributesForCorrectCheck.containsKey(attributeName);
-//		for(int i = 0 ; i < elements.size() ; i++) {
-//			if(elements.get(i).getAttributes().containsKey(attributeName)) {
-//				if(elements.get(i).getAttributes().get(attributeName).equals(value)) {
-//					correctElements.add(elements.get(i));
-//				}
-//			}
-//		}
-//		
-		return this.elementService.getSearch(userPlayground, email, attributeName, value);
+			public ElementTO[] searchElementsByAttributeOrType(@PathVariable("userPlayground") String userPlayground,
+						@PathVariable("email") String email ,
+						@PathVariable("attributeName") String attributeName,
+						@PathVariable("value") String value,
+						@RequestParam(name="size", required=false, defaultValue="10") int size, 
+						@RequestParam(name="page", required=false, defaultValue="0") int page) throws Exception{
+				return this.elementService.searchElementsByAttributeOrType(userPlayground,email,attributeName ,value , size , page)
+						.stream()
+						.map(ElementTO::new)
+						.collect(Collectors.toList())
+						.toArray(new ElementTO[0]);
+
 	}
 
 

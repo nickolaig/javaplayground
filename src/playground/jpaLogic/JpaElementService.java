@@ -25,6 +25,7 @@ import playground.logic.UserEntity;
 import playground.logic.UserKey;
 import playground.logic.UserService;
 import playground.logic.exceptions.ElementAlreadyExistsException;
+import playground.logic.exceptions.InvalidInputException;
 import playground.logic.exceptions.NoSuchElementID;
 
 @Service
@@ -132,11 +133,34 @@ public class JpaElementService implements ElementService {
 					PageRequest.of(page, size, Direction.DESC, "creationDate")).getContent();
 		}
 	}
-
+	
+	//TODO 
+	//@ValidationNotNullPlaygroundAndEmail
+	//@CheckConfirmUser
 	@Override
 	@Transactional(readOnly = true)
 	@MyLog
-	public ElementTO[] getDistanceElements(double x, double y, double distance) throws Exception {
+	public List<ElementEntity> getNearElements(String userPlayground, String email, int size, int page, double x,
+			double y, double distance) throws Exception {
+
+		UserEntity user = this.users.getUserByEmailAndPlayground(new UserKey(email,userPlayground));
+		if(distance<0)throw new Exception("Negative distance!");
+		if (user.getRole().equals("Manager")) {
+			return this.elements.findAllByXBetweenAndYBetween(x - distance, x + distance, y - distance,
+					y + distance, PageRequest.of(page, size, Direction.DESC, "creationDate")).getContent();
+		}
+
+		else {
+			Date currentDate = new Date();
+			return this.elements.findAllByXBetweenAndYBetweenAndExpirationDateAfterOrExpirationDateIsNull(x - distance,
+					x + distance, y - distance, y + distance, currentDate,
+					PageRequest.of(page, size, Direction.DESC, "creationDate")).getContent();
+		}
+	}
+	/*@Override
+	@Transactional(readOnly = true)
+	@MyLog
+	public ElementTO[] getNearElements(double x, double y, double distance) throws Exception {
 		ArrayList<ElementTO> correctElements = new ArrayList<>();
 
 		if (distance <= 0) {
@@ -150,7 +174,7 @@ public class JpaElementService implements ElementService {
 				}
 		}
 		return correctElements.toArray(new ElementTO[0]);
-	}
+	}*/
 	
 	@MyLog
 	private static Boolean checkDistance(double x, double y, double distance, Location location) {
@@ -173,61 +197,35 @@ public class JpaElementService implements ElementService {
 
 	}
 
+	//@ValidationNotNullPlaygroundAndEmail
+	//@CheckConfirmUser
 	@Override
-	@Transactional
+	@Transactional(readOnly = true)
 	@MyLog
-	public ElementTO[] getSearch(String userPlayground, String email, String attributeName, String value) {
+	public List<ElementEntity> searchElementsByAttributeOrType(String userPlayground, String email,String attributeName, String value, int size, int page) throws Exception {
 
-		ArrayList<ElementTO> correctElements = new ArrayList<>();
-		Iterable<ElementEntity> eA = this.elements.findAll();
-		for (ElementEntity e : eA) {
-			switch (attributeName) {
-			case "playground":
-				if (e.getPlayground().equals(value))
-					correctElements.add(e.toElementTO());
-				break;
-			case "id":
-				if (e.getId().equals(value))
-					correctElements.add(e.toElementTO());
-				break;
-			case "name":
-				if (e.getName().equals(value))
-					correctElements.add(e.toElementTO());
-				break;
-			case "creationDate":
-				if (e.getCreationDate().toString().equals(value))
-					correctElements.add(e.toElementTO());
-				break;
-			case "expirationDate":
-				if (e.getExpirationDate().toString().equals(value))
-					correctElements.add(e.toElementTO());
-				break;
-			case "creatorPlayground":
-				if (e.getCreatorPlayground().equals(value))
-					correctElements.add(e.toElementTO());
-				break;
-			case "creatorEmail":
-				if (e.getCreatorEmail().equals(value))
-					correctElements.add(e.toElementTO());
-				break;
-			case "x":
-				if (e.getX().toString().equals(value))
-					correctElements.add(e.toElementTO());
-				break;
-			case "y":
-				if (e.getY().toString().equals(value))
-					correctElements.add(e.toElementTO());
-				break;
-			default:
-				if (e.getAttributes() != null)
-					if (e.getAttributes().get(attributeName) != null)
-						if (e.getAttributes().get(attributeName).equals(value)) {
-							correctElements.add(e.toElementTO());
-						}
+		UserEntity user = this.users.getUserByEmailAndPlayground(new UserKey(email,userPlayground));
+		String role = user.getRole();
+		Date currentDate = new Date();
+		
+		if (attributeName.equals("Name")) {
+			if(role.equals("Manager"))
+			return this.elements.findAllByNameLike(value, PageRequest.of(page, size, Direction.DESC, "creationDate"))
+					.getContent();
+			else 
+				return this.elements.findAllByNameLikeAndExpirationDateAfterOrExpirationDateIsNull(value, currentDate,
+						PageRequest.of(page, size, Direction.DESC, "creationDate")).getContent();
+			
+		} else if (attributeName.equals("type")) {
+			if(role.equals("Manager")) {
+			return elements.findAllByTypeLike(value, PageRequest.of(page, size, Direction.DESC, "creationDate"))
+					.getContent();
 			}
-
+			else 
+				return this.elements.findAllByTypeLikeAndExpirationDateAfterOrExpirationDateIsNull(value,currentDate ,
+						PageRequest.of(page, size, Direction.DESC, "creationDate")).getContent();
 		}
-		return correctElements.toArray(new ElementTO[0]);
-	}
 
+		throw new InvalidInputException("attribute name not found" + attributeName);
+	}
 }
