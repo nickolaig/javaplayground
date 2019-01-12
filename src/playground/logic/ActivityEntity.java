@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -19,11 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Entity
 @Table(name = "activity")
 public class ActivityEntity {
-	
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	
-	private String id;
-	private String playground;
+
+	private ActivityKey playgroundAndId;
 	private String elementPlayground;
 	private String elementId;
 	private String type;
@@ -31,26 +29,15 @@ public class ActivityEntity {
 	private String playerPlayground;
 	private Map<String, Object> attributes;
 	
-	public AtomicLong atomiclong = new AtomicLong(1L);
-	
-	private String defaultPlaygroundName;
-	
-	
-	@Value("${playground.name:Anonymous}")
-	public void setDefaultPlaygroundName(String defaultPlaygroundName) {
-		this.defaultPlaygroundName = defaultPlaygroundName;
-	}
-	
-	
+
 	public ActivityEntity() {
 	this.attributes = new HashMap<>();
 	}
 
-	public ActivityEntity(String elementPlayground, String elementId, String type, String playerEmail,
+	public ActivityEntity(ActivityKey actKey,String elementPlayground, String elementId, String type, String playerEmail,
 			String playerPlayground, Map<String, Object> attributes) {
 		this();
-		this.id = Long.toString(atomiclong.getAndIncrement());
-		this.playground=this.defaultPlaygroundName;
+		this.playgroundAndId = actKey;
 		this.elementPlayground = elementPlayground;
 		this.elementId = elementId;
 		this.type = type;
@@ -60,22 +47,6 @@ public class ActivityEntity {
 	}
 
 
-	public String getPlayground() {
-		return playground;
-	}
-
-	public void setPlayground(String playground) {
-		this.playground = playground;
-	}
-
-	@Id
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
 
 	public String getElementPlayground() {
 		return elementPlayground;
@@ -116,7 +87,15 @@ public class ActivityEntity {
 	public void setPlayerPlayground(String playerPlayground) {
 		this.playerPlayground = playerPlayground;
 	}
+	@EmbeddedId
+	public ActivityKey getPlaygroundAndId() {
+		return playgroundAndId;
+	}
 
+
+	public void setPlaygroundAndId(ActivityKey playgroundAndId) {
+		this.playgroundAndId = playgroundAndId;
+	}
 	@Transient
 	public Map<String, Object> getAttributes() {
 		return attributes;
@@ -148,10 +127,10 @@ public class ActivityEntity {
 			throw new RuntimeException(e);
 		}
 	}
-
+	
 	@Override
 	public String toString() {
-		return "ActivityEntity [playground = " + this.playground + ", id = " + this.id + ", elementPlayground = " + this.elementPlayground
+		return "ActivityEntity [playground = " + this.playgroundAndId.getPlayground() + ", id = " + this.playgroundAndId.getId() + ", elementPlayground = " + this.elementPlayground
 				+ ", elementId = " + this.elementId + ", type = " + this.type + ", playerEmail = " + this.playerEmail
 				+ ", playerPlayground = " + this.playerPlayground + ", attributes = " + this.attributes + "]";
 	}

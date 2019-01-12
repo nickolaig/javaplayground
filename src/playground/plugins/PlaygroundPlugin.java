@@ -7,11 +7,12 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 
 import playground.logic.ActivityEntity;
 import playground.logic.ElementEntity;
+import playground.logic.UserEntity;
 import playground.logic.exceptions.ElementAlreadyExistsException;
 import playground.logic.exceptions.NoSuchElementID;
 
 public interface PlaygroundPlugin {
-		public Object invokeOperation( ActivityEntity activity)
+		public Object invokeOperation( ActivityEntity activity, ElementEntity element,UserEntity user)
 				throws Exception;
 
 		

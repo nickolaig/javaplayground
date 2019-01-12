@@ -266,12 +266,10 @@ public class ElementTests {
 		this.elementService.addNewElement(PLAYGROUND_NAME, MANAGER_EMAIL, entity2);
 		this.elementService.addNewElement(PLAYGROUND_NAME, MANAGER_EMAIL, entity3);
 
-//				When I Get playground/elements/2019A.shir/dorc@gmail.com/all
-//
 		ElementTO[] actualElements = this.restTemplate.getForObject(this.url + "/{userPlayground}/{email}/all",
 				ElementTO[].class, PLAYGROUND_NAME, PLAYER_EMAIL);
 
-//				Then the response status is 200 and the body is an array of 2 elements
+
 		
 		System.err.println(actualElements[0] + "-------" + actualElements[1]);
 		assertThat(actualElements).isNotNull().hasSize(2);

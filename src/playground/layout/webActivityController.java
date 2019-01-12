@@ -49,7 +49,8 @@ public class webActivityController {
 		
 				validateEmailNull(email);
 				validatePlayground(userPlayground);
-				return new ActivityTO(this.actService.createActivity(email, userPlayground, activity.toEntity()));
+				System.err.println("ASDASDASDASD");
+				return new ActivityTO(this.actService.createActivity(userPlayground, email, activity));
 	}
 	
 		

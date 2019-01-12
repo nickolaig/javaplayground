@@ -20,37 +20,54 @@ import playground.logic.exceptions.ElementAlreadyExistsException;
 import playground.logic.exceptions.NoSuchElementID;
 
 @Component
-public class WriteMessagePlugin implements PlaygroundPlugin {
+public class PostMessagePlugin implements PlaygroundPlugin {
 
 	private ObjectMapper jackson;
 	private ElementService elements;
-	private UserService user;
+	private UserService users;
+	private String points;
+	
 
 	@Autowired
-	public  WriteMessagePlugin(UserService user,ElementService elements) {
+	public  PostMessagePlugin(UserService users,ElementService elements) {
 
 		this.jackson = new ObjectMapper();
-		this.user = user;
+		this.users = users;
 		this.elements = elements;
 
 	}
 
 	@Override
-	public Object invokeOperation( ActivityEntity activity) throws Exception {
-		String id = activity.getElementId();
-		String elementPlaygrund = activity.getElementPlayground();
+	public Object invokeOperation(ActivityEntity activity, ElementEntity element, UserEntity user) throws Exception {
+
+
 		String plPlayground = activity.getPlayerPlayground();
 		String plEmail = activity.getPlayerEmail();
-		UserKey userKey = new UserKey(plEmail,plPlayground);
+		UserKey userKey = user.getUserEmailPlaygroundKey();
 		
 		Message value = this.jackson.readValue(activity.getJsonAttributes(), Message.class);
 		
-		UserEntity currentUser = user.getUserByEmailAndPlayground(userKey);
-		currentUser.setPoints(currentUser.getPoints() + 2);
-		user.updateUser(currentUser, userKey);
 		
-		return new PostMessageResponse(value.getMessage(),2);
+		ElementMsgColor elementMsgCol = new ElementMsgColor();
+		element.setAttributes(jackson.readValue(jackson.writeValueAsString(elementMsgCol), Map.class));
+		
+		UserEntity currentUser = this.users.getUserByEmailAndPlayground(userKey);
+		PostMessageResponse rv;
+		if(elementMsgCol.getMsgColor().equals("Red")) {
+			currentUser.setPoints(currentUser.getPoints() + 5);
+			rv=new PostMessageResponse(value.getMessage(),5);
+		}
+		else {
+			currentUser.setPoints(currentUser.getPoints() + 2);
+			rv=new PostMessageResponse(value.getMessage(),2);
+			}
+		
+		this.users.updateUser(currentUser, userKey);
+		this.elements.updateElementById(plPlayground, plEmail, element.getPlaygroundAndID().getPlayground(), element.getPlaygroundAndID().getId(), element, true);
+		return rv;
 
 	}
+
+
 
 }

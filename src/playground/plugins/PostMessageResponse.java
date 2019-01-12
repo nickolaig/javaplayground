@@ -2,10 +2,12 @@ package playground.plugins;
 
 public class PostMessageResponse {
 
-	String message;
-	int points;
+	private String message;
+	private int points;
 
-
+	public PostMessageResponse() {
+	 
+	}
 	public PostMessageResponse(String message , int points) {
 		 
 		this.message=message;

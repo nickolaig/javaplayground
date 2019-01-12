@@ -1,10 +1,10 @@
 package playground.plugins;
 
-public class MessagePageable {
+public class MessagePageableByElementId {
 	private String page;
 	private String size;
-	
-	public MessagePageable() {
+	private String elementId=null;
+	public MessagePageableByElementId() {
 		this.size = "10";
 		this.page = "0";
 	}
@@ -23,6 +23,14 @@ public class MessagePageable {
 
 	public void setSize(String size) {
 		this.size = size;
+	}
+
+	public String getElementId() {
+		return elementId;
+	}
+
+	public void setElementId(String elementId) {
+		this.elementId = elementId;
 	}
 	
 	

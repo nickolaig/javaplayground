@@ -40,8 +40,8 @@ public class ActivityTO {
 		this();
 		
 		if(act!=null) {
-		this.playground = "TA";
-		this.id = act.getId();
+		this.playground = act.getPlaygroundAndId().getPlayground();
+		this.id = act.getPlaygroundAndId().getId();
 		this.elementPlayground = act.getElementPlayground();
 		this.elementId = act.getElementId();
 		this.type = act.getType();
@@ -126,13 +126,12 @@ public class ActivityTO {
 		
 		ActivityEntity act = new ActivityEntity();
 		
+		act.setPlaygroundAndId(new ActivityKey(this.id,this.playground));
 		act.setAttributes(this.attributes);
 		act.setElementId(this.elementId);
 		act.setElementPlayground(this.elementPlayground);
-		act.setId(this.id);
 		act.setPlayerEmail(this.playerEmail);
 		act.setPlayerPlayground(this.playerPlayground);
-		act.setPlayground(this.playground);
 		act.setType(this.type);
 		
 		return act;

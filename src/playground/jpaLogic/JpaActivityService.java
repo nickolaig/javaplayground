@@ -15,13 +15,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import playground.aop.CheckValidActionByRule;
 import playground.aop.MyLog;
 import playground.aop.ValidationManagerLog;
+import playground.aop.checkForUserConfirmation;
 import playground.dal.ActivityDao;
 import playground.dal.IdGeneratorDao;
 import playground.logic.ActivityEntity;
+import playground.logic.ActivityKey;
 import playground.logic.ActivityService;
 import playground.logic.ActivityTO;
+import playground.logic.ElementEntity;
+import playground.logic.ElementService;
+import playground.logic.UserEntity;
+import playground.logic.UserKey;
+import playground.logic.UserService;
 import playground.logic.exceptions.ActivityAlreadyExistException;
 import playground.logic.exceptions.ActivityNotFoundException;
 import playground.logic.exceptions.InvalidInputException;
@@ -36,23 +44,21 @@ public class JpaActivityService implements ActivityService {
 	private ObjectMapper jackson;
 	private IdGeneratorDao idGenerator;
 	
-
+	private ElementService elements;
+	private UserService users;
+	
 	@Autowired
-	public JpaActivityService(ActivityDao activities, IdGeneratorDao idGenerator, ApplicationContext spring) {
+	public JpaActivityService(ActivityDao activities, IdGeneratorDao idGenerator, ApplicationContext spring,ElementService elements,UserService users) {
 		this.activities = activities;
 		this.idGenerator = idGenerator;
 		this.spring = spring; //???
 		this.jackson = new ObjectMapper();
+		
+		this.elements= elements;
+		this.users=users;
 	}
 	
-	@Override
-	@Transactional(readOnly = true)
-	public ActivityEntity getActivity(String id) throws ActivityNotFoundException {
-		Optional<ActivityEntity> op = this.activities.findById(id);
-		if(op.isPresent())
-			return op.get();
-		throw new ActivityNotFoundException();
-	}
+
 	
 	
 	@Transactional
@@ -82,21 +88,37 @@ public class JpaActivityService implements ActivityService {
 				.getContent();
 	}
 	
+	//TODO Aspect
 	@Override
 	@Transactional
-	public ActivityEntity createActivity(String email, String userPlayground, ActivityEntity activity) throws ActivityAlreadyExistException{
-		if (!this.activities.existsById(activity.getId())) {
+	@MyLog
+	@checkForUserConfirmation
+	@CheckValidActionByRule(role = "Manager")
+	public ActivityEntity createActivity(String userPlayground, String email, ActivityTO activity) throws Exception{
+
 			IdGenerator tmp = this.idGenerator.save(new IdGenerator());
 			Long dummyId = tmp.getId();
 			this.idGenerator.delete(tmp);
-			activity.setId("" + dummyId);
-		}
+			activity.setId(dummyId.toString());
+			activity.setPlayground(userPlayground);
 		
-		activity.setPlayerEmail(email);
-		activity.setPlayerPlayground(userPlayground);
+			ActivityEntity rv = null;
+		
+			UserEntity user = this.users.getUserByEmailAndPlayground(new UserKey(email,userPlayground));
+			System.err.println(user.getUserEmailPlaygroundKey().getEmail() + "-----" + user.getUserEmailPlaygroundKey().getPlayground());
+			// check if the element exist in the playground
+			ElementEntity element = this.elements.getElementById(userPlayground, email, activity.getElementPlayground(), activity.getElementId());
+
+
+			ActivityEntity activityEntity = activity.toEntity();
+
+
+		
 		try {
-			if(activity.getType()!=null) {
-				String type = activity.getType();
+			if(activityEntity.getType()!=null) {
+				String type = activityEntity.getType();
+				activityEntity.setPlayerEmail(email);
+				activityEntity.setPlayerPlayground(userPlayground);
 				String className = "playground.plugins." + type + "Plugin";
 				Class<?> theClass = Class.forName(className);
 				System.err.println(theClass.getName());
@@ -104,22 +126,28 @@ public class JpaActivityService implements ActivityService {
 				
 				//PlaygroundPlugin plugin = (PlaygroundPlugin) spring.getBean(Class.forName("playground.plugins." + type + "Plugin"));
 				
-				Object content = plugin.invokeOperation(activity);
+				Object content = plugin.invokeOperation(activityEntity,element,user);
 				Map<String,Object> contentMap = this.jackson.readValue(this.jackson.writeValueAsString(content), Map.class);
 				System.err.println(contentMap);
-				activity.getAttributes().putAll(contentMap);
-				System.err.println(activity);
+				activityEntity.getAttributes().putAll(contentMap);
+				System.err.println(activityEntity);
 				//activity = jackson.readValue(jackson.writeValueAsString(content),ActivityEntity.class);
-		
+				rv=this.activities.save(activityEntity);
 			}
 		}catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-		
-		System.err.println("before SAVEEEEEEEEEEEEEEEEEEEEEEEe   " + activity);
-		return this.activities.save(activity);
+		System.err.println("before SAVEEEEEEEEEEEEEEEEEEEEEEEe   " + activityEntity);
+		return rv;
 	}
-	
+	@Override
+	@Transactional(readOnly = true)
+	public ActivityEntity getActivity(String id) throws ActivityNotFoundException {
+		Optional<ActivityEntity> op = this.activities.findById(id);
+		if(op.isPresent())
+			return op.get();
+		throw new ActivityNotFoundException();
+	}
 	public List<ActivityEntity> getAllPostMessagesByElementId(String elementId, String type, Pageable pageable){
 		return activities.getAllPostMessagesByElementId(elementId, type, pageable);
 	}

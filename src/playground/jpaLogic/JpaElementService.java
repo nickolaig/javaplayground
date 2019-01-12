@@ -3,6 +3,7 @@ package playground.jpaLogic;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -27,6 +28,7 @@ import playground.logic.UserService;
 import playground.logic.exceptions.ElementAlreadyExistsException;
 import playground.logic.exceptions.InvalidInputException;
 import playground.logic.exceptions.NoSuchElementID;
+import playground.plugins.ElementMsgColor;
 
 @Service
 public class JpaElementService implements ElementService {
@@ -59,6 +61,8 @@ public class JpaElementService implements ElementService {
 			
 			switch (element.getType()) {
 				case "message_board":element.getAttributes().put("msgCount", 0)	;
+				ElementMsgColor elementMsgCol=new ElementMsgColor();
+				element.getAttributes().put("msgColor",elementMsgCol.getMsgColor());
 					break;
 				case "Tamagotchi":element.getAttributes().put("Life",100);
 								element.getAttributes().put("Happiness", 50);
@@ -84,9 +88,12 @@ public class JpaElementService implements ElementService {
 	@Transactional
 	@MyLog
 	@checkForUserConfirmation
-	@CheckValidActionByRule(role="Player")
-	public void updateElementById(String userPlayground, String email, String playground, String id, ElementEntity element) throws Exception {
-
+	public void updateElementById(String userPlayground, String email, String playground, String id, ElementEntity element, boolean afterInvokeOperation) throws Exception {
+		UserEntity user = this.users.getUserByEmailAndPlayground(new UserKey(email, playground));
+		
+		if(!afterInvokeOperation && user.getRole().equalsIgnoreCase("player")) {
+			throw new RuntimeException("Player Cant Update Elements!");
+		}
 		ElementEntity existingElement = this.getElementById(userPlayground, email, playground, id);
 		
 		if (element.getName() != null && !element.getName().equals(existingElement.getName())) {
