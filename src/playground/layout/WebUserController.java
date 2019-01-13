@@ -77,11 +77,7 @@ public class WebUserController {
 	public UserTO userLogin(@PathVariable("playground") String playground, @PathVariable("email") String email)
 			throws Exception {
 
-		if (email.endsWith("ac.il")) {
-			return new UserTO(this.userService.getUserByEmailAndPlayground(new UserKey(email, playground)));
-		} else {
-			throw new UserIncorrectEmail("email is incorrect");
-		}
+		return new UserTO(this.userService.getUserByEmailAndPlayground(new UserKey(email, playground)));
 
 	}
 

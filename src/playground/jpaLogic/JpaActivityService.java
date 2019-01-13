@@ -59,36 +59,6 @@ public class JpaActivityService implements ActivityService {
 	}
 	
 
-	
-	
-	@Transactional
-	@MyLog
-	@Override
-	public void updateActivity(String id, ActivityEntity activityEntity) throws ActivityNotFoundException  {
-		ActivityEntity existingActivity = this.getActivity(id);
-		
-		if(activityEntity.getType()!= null && !activityEntity.getType().equals(existingActivity.getType())) {
-			existingActivity.setType(activityEntity.getType());
-		}
-		
-		if(activityEntity.getElementPlayground()!= null && activityEntity.getElementPlayground()!= existingActivity.getElementPlayground()) {
-			existingActivity.setElementPlayground(activityEntity.getElementPlayground());
-		}
-		
-		this.activities.save(existingActivity);
-	}
-	
-	
-	@Override
-	@Transactional
-	@MyLog
-	public List<ActivityEntity> getAllActivities (int size,int page){
-		return this.activities
-				.findAll(PageRequest.of(page, size))
-				.getContent();
-	}
-	
-	//TODO Aspect
 	@Override
 	@Transactional
 	@MyLog
@@ -137,21 +107,10 @@ public class JpaActivityService implements ActivityService {
 		}catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-		System.err.println("before SAVEEEEEEEEEEEEEEEEEEEEEEEe   " + activityEntity);
+
 		return rv;
 	}
-	@Override
-	@Transactional(readOnly = true)
-	public ActivityEntity getActivity(String id) throws ActivityNotFoundException {
-		Optional<ActivityEntity> op = this.activities.findById(id);
-		if(op.isPresent())
-			return op.get();
-		throw new ActivityNotFoundException();
-	}
-	public List<ActivityEntity> getAllPostMessagesByElementId(String elementId, String type, Pageable pageable){
-		return activities.getAllPostMessagesByElementId(elementId, type, pageable);
-	}
-	
+
 	@Override
 	@Transactional
 	@MyLog

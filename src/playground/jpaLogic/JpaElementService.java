@@ -60,13 +60,16 @@ public class JpaElementService implements ElementService {
 			element.setCreatorPlayground(userPlayground);
 			
 			switch (element.getType()) {
-				case "message_board":element.getAttributes().put("msgCount", 0)	;
+				case "message_board":
 				ElementMsgColor elementMsgCol=new ElementMsgColor();
 				element.getAttributes().put("msgColor",elementMsgCol.getMsgColor());
 					break;
-				case "Tamagotchi":element.getAttributes().put("Life",100);
-								element.getAttributes().put("Happiness", 50);
-								element.getAttributes().put("Fed", 50);
+				case "Tamagotchi":
+								element.getAttributes().put("life",50);
+								element.getAttributes().put("happiness", 50);
+								element.getAttributes().put("fed", 50);
+								element.getAttributes().put("isAlive", true);
+								
 					break;
 			}
 			
@@ -77,6 +80,8 @@ public class JpaElementService implements ElementService {
 
 	@Override
 	@Transactional(readOnly = true)
+	@MyLog
+	
 	public ElementEntity getElementById(String userPlayground, String email, String playground, String id) throws NoSuchElementID {
 
 		// ElementEntity rv = this.elements.get(playground+id);
@@ -141,11 +146,9 @@ public class JpaElementService implements ElementService {
 		}
 	}
 	
-	//TODO 
-	//@ValidationNotNullPlaygroundAndEmail
-	//@CheckConfirmUser
 	@Override
 	@Transactional(readOnly = true)
+	@checkForUserConfirmation
 	@MyLog
 	public List<ElementEntity> getNearElements(String userPlayground, String email, int size, int page, double x,
 			double y, double distance) throws Exception {
@@ -164,24 +167,6 @@ public class JpaElementService implements ElementService {
 					PageRequest.of(page, size, Direction.DESC, "creationDate")).getContent();
 		}
 	}
-	/*@Override
-	@Transactional(readOnly = true)
-	@MyLog
-	public ElementTO[] getNearElements(double x, double y, double distance) throws Exception {
-		ArrayList<ElementTO> correctElements = new ArrayList<>();
-
-		if (distance <= 0) {
-			throw new Exception("Negative distance");
-		}
-		List<ElementEntity> partition = getAllElements(Integer.MAX_VALUE, 0);
-		for (ElementEntity element : partition) {
-			if (element.getX() != null && element.getY() != null)
-				if (checkDistance(x, y, distance, new Location(element.getX(), element.getY()))) {
-					correctElements.add(element.toElementTO());
-				}
-		}
-		return correctElements.toArray(new ElementTO[0]);
-	}*/
 	
 	@MyLog
 	private static Boolean checkDistance(double x, double y, double distance, Location location) {

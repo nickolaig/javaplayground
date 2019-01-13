@@ -313,128 +313,97 @@ public class ActivityTests {
 		assertThat((List<Object>)(response.getAttributes().get("messages"))).hasSize(2);
 	}
 	
+	@Test
+	public void testTamagotchiFeedSuccessfulyByPlayer() throws Exception {
+		String postJson ="{\"playground\": \"TA\", \"elementPlayground\": \"TA\", \"type\": \"TamagotchiFeed\",\"playerEmail\":\"nick@ac.il\",\"playerPlayground\": \"TA\",\"attributes\": {\"isAlive\" : true, \"points\" : 0, \"happiness\": 0, \"fed\": 0,\"life\":0}}";
+
+		ActivityTO post = this.jacksonMaper.readValue(postJson, ActivityTO.class);
+		post.setElementId(Tamagotchi.getPlaygroundAndID().getId());
+		
+		
+		ActivityTO response = this.restTemplate.postForObject(this.url + "/{userPlayground}/{email}", post,
+				ActivityTO.class, PLAYGROUNDNAME, PLAYEREMAIL);
+		
+
+		assertThat(response).isNotNull().extracting("playerPlayground", "type").containsExactly(PLAYGROUNDNAME, post.getType());
+
+		this.player = this.userService.getUserByEmailAndPlayground(new UserKey(PLAYEREMAIL,PLAYGROUNDNAME));
+		
+		assertThat(this.player.getPoints() == 5).isTrue();	
+		
+		
+		ActivityTO expectedAct = this.jacksonMaper.readValue(
+				"{\"playground\": \"TA\", \"elementPlayground\": \"TA\", \"type\": \"TamagotchiFeed\",\"playerEmail\":\"nick@ac.il\",\"playerPlayground\": \"TA\",\"attributes\": {\"isAlive\" : true, \"points\" : 5, \"happiness\": 90, \"fed\": 60,\"life\":50}}",
+				ActivityTO.class);
+		expectedAct.setId(null);
+		expectedAct.setElementId(Tamagotchi.getPlaygroundAndID().getId());
+		String expectedJsonResponse = this.jacksonMaper.writeValueAsString(expectedAct);
+		response.setId(null);
+		
+		
+		assertThat(this.jacksonMaper.writeValueAsString(response)).isEqualTo(expectedJsonResponse);
+	}
+	@Test
+	public void testTamagotchiWalkSuccessfulyByPlayer() throws Exception {
+		String postJson = "{\"type\":\"TamagotchiWalk\",\"elementPlayground\":\"TA\",\"attributes\": {\"isAlive\" : true, \"points\" : 5, \"happiness\": 90,\"life\":70,  \"fed\": 40}}}";
+
+		ActivityTO post = this.jacksonMaper.readValue(postJson, ActivityTO.class);
+		post.setElementId(Tamagotchi.getPlaygroundAndID().getId());
+		
+		ActivityTO response = this.restTemplate.postForObject(this.url + "/{userPlayground}/{email}", post,
+				ActivityTO.class, PLAYGROUNDNAME, PLAYEREMAIL);
+		
+
+		assertThat(response).isNotNull().extracting("playerPlayground", "type").containsExactly(PLAYGROUNDNAME, post.getType());
+
+		this.player = this.userService.getUserByEmailAndPlayground(new UserKey(PLAYEREMAIL,PLAYGROUNDNAME));
+		
+		assertThat(this.player.getPoints() == 5).isTrue();	
+		
+		
+		ActivityTO expectedAct = this.jacksonMaper.readValue(
+				"{\"playground\": \"TA\", \"elementPlayground\": \"TA\", \"type\": \"TamagotchiWalk\",\"playerEmail\":\"nick@ac.il\",\"playerPlayground\": \"TA\",\"attributes\": {\"isAlive\" : true, \"points\" : 5, \"happiness\": 90,\"life\":70,\"fed\": 40}}",
+				ActivityTO.class);
+		expectedAct.setId(null);
+		expectedAct.setElementId(Tamagotchi.getPlaygroundAndID().getId());
+		String expectedJsonResponse = this.jacksonMaper.writeValueAsString(expectedAct);
+		response.setId(null);
+
+		
+		assertThat(this.jacksonMaper.writeValueAsString(response)).isEqualTo(expectedJsonResponse);
 	
-	@Test
-	public void testReadMessagesSuccessfully()  throws Exception {
-		String activityId = "123";
-		
-		ElementEntity messageBoard = new ElementEntity();
-		messageBoard.setType("Message-Borad"); 
-		messageBoard.setName("messageBoard");
-		messageBoard.setId("123");
-		String creatorPlayground = "TA";
-		String creatorEmail = "benny@ac.il";
-		
-		UserKey userKey = new UserKey(creatorEmail, creatorPlayground);
-		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
-		currentUser.setIsValidate(true);
-		userService.updateUser(currentUser, userKey);
-		
-		ActivityEntity postActivity = new ActivityEntity( "TA", activityId, "readMessages",creatorEmail,"Nadav",null);
-		elementService.addNewElement(creatorPlayground, creatorEmail, messageBoard);
-		
-		ActivityTO rv = this.restTemplate.postForObject(this.url + "/{userPlayground}/{email}" ,postActivity,ActivityTO.class, "TA", creatorEmail);
 	}
-
 	@Test
-	public void testWriteMessageSuccessfully() throws Exception {
-		String activityId = "123";
-		
-		ElementEntity messageBoard = new ElementEntity();
-		messageBoard.setType("Message-Borad"); 
-		messageBoard.setName("messageBoard");
-		messageBoard.setId("123");
-		String creatorPlayground = "TA";
-		String creatorEmail = "benny@ac.il";
-		Map<String,Object> attributes = new HashMap<String, Object>() ;
-		attributes.put("message", "hi");
-		
-		//TODO: change to sets
-		ActivityEntity postActivity = new ActivityEntity( "TA", activityId, "WriteMessage",creatorEmail,"Nadav",attributes);
-		
-		UserKey userKey = new UserKey(creatorEmail, creatorPlayground);
-		UserEntity currentUser = userService.addNewUser(new UserEntity(userKey, "Nadi", "Any", "Manager", 0L));
-		currentUser.setIsValidate(true);
-		userService.updateUser(currentUser, userKey);
-		
-		elementService.addNewElement(creatorPlayground, creatorEmail, messageBoard);
-		
-		ActivityTO rv = this.restTemplate.postForObject(this.url + "/{userPlayground}/{email}" ,postActivity,ActivityTO.class, "TA", creatorEmail);
-		
-		String mapAttributesToCheck = jacksonMaper.writeValueAsString(rv.getAttributes());
-		
-		ActivityEntity returnedActivity = this.actService.getActivity(rv.getId());
-		String mapAttributesOfReturnedEntity = jacksonMaper.writeValueAsString(returnedActivity.getAttributes());
+	public void testTamagotchiTickleSuccessfulyByPlayer() throws Exception {
+		String postJson ="{\"playground\": \"TA\", \"elementPlayground\": \"TA\", \"type\": \"TamagotchiTickle\",\"playerEmail\":\"nick@ac.il\",\"playerPlayground\": \"TA\",\"attributes\": {\"isAlive\" : true, \"points\" : 0, \"happiness\": 0, \"fed\": 0,\"life\":0}}";
+
+		ActivityTO post = this.jacksonMaper.readValue(postJson, ActivityTO.class);
+		post.setElementId(Tamagotchi.getPlaygroundAndID().getId());
 		
 		
-		assertThat(returnedActivity).
-		isNotNull();
+		ActivityTO response = this.restTemplate.postForObject(this.url + "/{userPlayground}/{email}", post,
+				ActivityTO.class, PLAYGROUNDNAME, PLAYEREMAIL);
 		
-		assertThat(mapAttributesToCheck).isEqualTo(mapAttributesOfReturnedEntity);
-		assertThat(userService.getUserByEmailAndPlayground(userKey)).extracting("points").containsExactly(2L);
+
+		assertThat(response).isNotNull().extracting("playerPlayground", "type").containsExactly(PLAYGROUNDNAME, post.getType());
+
+		this.player = this.userService.getUserByEmailAndPlayground(new UserKey(PLAYEREMAIL,PLAYGROUNDNAME));
+		
+		assertThat(this.player.getPoints() == 5).isTrue();	
 		
 		
+		ActivityTO expectedAct = this.jacksonMaper.readValue(
+				"{\"playground\": \"TA\", \"elementPlayground\": \"TA\", \"type\": \"TamagotchiTickle\",\"playerEmail\":\"nick@ac.il\",\"playerPlayground\": \"TA\",\"attributes\": {\"isAlive\" : true, \"points\" : 5, \"happiness\": 100, \"fed\": 40,\"life\":50}}",
+				ActivityTO.class);
+		expectedAct.setId(null);
+		expectedAct.setElementId(Tamagotchi.getPlaygroundAndID().getId());
+		String expectedJsonResponse = this.jacksonMaper.writeValueAsString(expectedAct);
+		response.setId(null);
+		
+		
+		assertThat(this.jacksonMaper.writeValueAsString(response)).isEqualTo(expectedJsonResponse);
 	
-		
-		
-		
-		
-		
 	}
 
 
-
-
-	@Test
-	public void theUserInvokeActivitySuccessfully() throws Exception {
-		/*************************************************************
-		 *	Given the server is up 									 *
-		 *	When I POST playground/activity/TA/spivak@ac.il			 *
-		 *	{"id": "123","playground":"TA","type": "pMessage"} 		 *
-		 *************************************************************/
-
-		String actJson = "{\"id\": \"123\",\"playground\":\"TA\",\"type\": \"pMessage\"}";
-		ActivityEntity act = this.jacksonMaper.readValue(actJson, ActivityEntity.class);
-
-		ActivityTO forPost = new ActivityTO(act);
-
-		ActivityTO response = this.restTemplate.postForObject(
-				this.url+"/{userPlayground}/{email}",
-				forPost,
-				ActivityTO.class,
-				"TA","spivak@ac.il");
-		/********************************************************
-		 *	Then the return status is 200					 	*
-		 *	And the returned value is the posted activity 	 	*
-		 *	{"id": "123","playground":"TA","type": "pMessage"} 	*
-		 ********************************************************/
-		assertThat(response)
-		.isNotNull()
-		.extracting("id","playground","type")
-		.contains("123","TA","pMessage");
-	}
-
-	@Test(expected=Exception.class)
-	public void theUserInvokeActivityWithWrongType() throws Exception {
-		/*************************************************************
-		 *	Given the server is up 									 *
-		 *	When I POST playground/activity/TA/spivak@ac.il			 *
-		 *	{"id": "123","playground":"TA","type": "post"}			 *
-		 *************************************************************/
-
-		String actJson = "{\"id\": \"123\",\"playground\":\"TA\",\"type\": \"none\"}";
-		ActivityEntity act = this.jacksonMaper.readValue(actJson, ActivityEntity.class);
-
-		ActivityTO forPost = new ActivityTO(act);
-
-		ActivityTO response = this.restTemplate.postForObject(
-				this.url+"/{userPlayground}/{email}",
-				forPost,
-				ActivityTO.class,
-				"TA","spivak@ac.il");
-		/****************************************
-		 * Then the return status is <> 2xx     *
-		 ****************************************/
-
-	}
 }

@@ -1,5 +1,6 @@
 package playground.jpaLogic;
 
+import java.util.Properties;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import playground.aop.MyLog;
+import playground.aop.checkForUserConfirmation;
 import playground.dal.IdGeneratorDao;
 import playground.dal.UserDao;
 import playground.logic.UserEntity;
@@ -17,22 +19,42 @@ import playground.logic.exceptions.UserAlreadyExistsException;
 import playground.logic.exceptions.UserNotFoundException;
 import playground.logic.exceptions.ValidCodeIncorrectExeption;
 
+import javax.annotation.PostConstruct;
+import javax.mail.*;
+import javax.mail.internet.*;
+
 @Service("UserService")
 public class JpaUserService implements UserService {
 	private UserDao users;
 	private IdGeneratorDao idGenerator;
-	
+	private Properties prop ;
 	
 	@Autowired
 	public JpaUserService(UserDao users, IdGeneratorDao idGenerator) {
 		this.users = users;
 		this.idGenerator = idGenerator;
 	}
-
+	@PostConstruct
+	public void init() {
+		this.prop = new Properties();
+		prop.put("mail.smtp.auth", "true");
+		prop.put("mail.smtp.starttls.enable", "true");
+		prop.put("mail.smtp.host", "smtp.gmail.com");
+		prop.put("mail.smtp.port", "587");
+	}
 	@Override
 	@Transactional
 	@MyLog
 	public UserEntity addNewUser(UserEntity user) throws Exception {
+		
+		String host = "stmp.gmail.com";
+		String username = "nickolaig@mail.afeka.ac.il";
+		String from = "nickolaig@mail.afeka.ac.il";
+		String pass = "afeka2016";
+		String to = user.getUserEmailPlaygroundKey().getEmail();
+		String subject = "Confirm password From TA playground";
+		
+		
 		UserKey userEmailPlaygroundKey = new UserKey(user.getUserEmailPlaygroundKey().getEmail(),
 				user.getUserEmailPlaygroundKey().getPlayground());
 		
@@ -45,12 +67,47 @@ public class JpaUserService implements UserService {
 		System.err.println(user.getCode());
 		user.setIsValidate(false);
 
-		return this.users.save(user);
+		UserEntity rv = this.users.save(user);
 		
-		//TODO: SEND CODE TO USER!!!
+		
+		
+		Session session = Session.getDefaultInstance(prop,new Authenticator() {	
+		@Override
+		protected PasswordAuthentication	getPasswordAuthentication() {
+		
+			return new PasswordAuthentication(username, pass);
+		}
+		});
+	
+		try {
+			
+			Message message = new MimeMessage(session);
+			
+			message.setFrom(new InternetAddress(from));
+			
+			message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
+			
+			message.setSubject(subject);
+		
+			message.setText("Your confirmation code is : " +  user.getCode() + " Use it to come back!");
+		
+			Transport.send(message);
+		
+			System.err.println("Email send successfully...");
+			
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return rv;
 	}
+
+	
+	
+	
 	@Override
 	@Transactional
+	@MyLog
 	public UserEntity confirm(String playground, String email, int code) throws Exception {
 
 		UserEntity rv = this.getUserByEmailAndPlayground(new UserKey(email, playground));
@@ -70,6 +127,7 @@ public class JpaUserService implements UserService {
 	
 	@Override
 	@Transactional(readOnly = true)
+	@MyLog
 	public UserEntity getUserByEmailAndPlayground(UserKey userKey) throws Exception {
 
 		return this.users.findById(userKey)
@@ -87,6 +145,7 @@ public class JpaUserService implements UserService {
 	@Override
 	@Transactional
 	@MyLog
+	@checkForUserConfirmation
 	public void updateUser(UserEntity entityUpdates, UserKey userEmailPlaygroundKey ) throws Exception {
 		boolean isSelfUpdate;
 		
@@ -168,7 +227,7 @@ public class JpaUserService implements UserService {
 	}
 	
 	private int generateCode() {
-		int minRange = 0;
+		int minRange = 5;
 		int maxRange = 9;
 		int generatedCode = 0;
 

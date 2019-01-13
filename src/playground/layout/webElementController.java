@@ -60,7 +60,7 @@ public class webElementController {
 				element.getCreationDate(), element.getExpirationDate(), element.getType(), element.getAttributes(),
 				element.getCreatorPlayground(), element.getCreatorEmail());
 		System.err.println(element.toString());
-		this.elementService.updateElementById(userPlayground, email, playground, id, element.toEntity());
+		this.elementService.updateElementById(userPlayground, email, playground, id, element.toEntity(),false);
 	}
 
 	@RequestMapping(method = RequestMethod.GET, path = "/playground/elements/{userPlayground}/{email}/{playground}/{id}", produces = MediaType.APPLICATION_JSON_VALUE)

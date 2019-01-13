@@ -65,7 +65,7 @@ public class WebUserUITests {
 	@Test
 	public void testCreateUserSuccessfully() throws Exception {
 
-		String email = "kroyzman546@ac.il";
+		String email = "kroyzman546@gmail.com";
 		String userName = "Nadav";
 		String role = "Player";
 		String avatar = "Niko";
