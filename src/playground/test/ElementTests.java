@@ -271,7 +271,6 @@ public class ElementTests {
 
 
 		
-		System.err.println(actualElements[0] + "-------" + actualElements[1]);
 		assertThat(actualElements).isNotNull().hasSize(2);
 	}
 	@Test
@@ -402,8 +401,7 @@ public class ElementTests {
 	@Test(expected = Exception.class)
 	public void testGetAllElementsInGivenIncorrectRadiusFails() throws Exception {
 	
-		System.err.println(this.restTemplate.getForObject(this.url + "/{userPlayground}/{email}/near/{x}/{y}/{distance}", ElementTO[].class,PLAYGROUND_NAME,MANAGER_EMAIL, 0, 0,
-				-1));
+		System.err.println(this.restTemplate.getForObject(this.url + "/{userPlayground}/{email}/near/{x}/{y}/{distance}", ElementTO[].class,PLAYGROUND_NAME,MANAGER_EMAIL, 0, 0,-1));
 	}
 
 	

@@ -43,7 +43,6 @@ public class GetAllMessagesByElementIdPlugin implements PlaygroundPlugin {
 		this.page = Integer.parseInt(pageStr);
 		this.size = Integer.parseInt(sizeStr);
 		this.elementId=pagesWithElementId.getElementId();
-		System.err.println(elementId+"---------------------------dasdasdas");
 		PostMessageResponse post;
 		List<String> allPosts = new ArrayList<>();
 		if(elementId==null)

@@ -59,7 +59,6 @@ public class webElementController {
 		ElementTO et = new ElementTO(element.getPlayground(), element.getId(), element.getLocation(), element.getName(),
 				element.getCreationDate(), element.getExpirationDate(), element.getType(), element.getAttributes(),
 				element.getCreatorPlayground(), element.getCreatorEmail());
-		System.err.println(element.toString());
 		this.elementService.updateElementById(userPlayground, email, playground, id, element.toEntity(),false);
 	}
 

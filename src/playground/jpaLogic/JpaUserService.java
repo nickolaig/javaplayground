@@ -64,7 +64,6 @@ public class JpaUserService implements UserService {
 		}
 		
 		user.setCode(generateCode());
-		System.err.println(user.getCode());
 		user.setIsValidate(false);
 
 		UserEntity rv = this.users.save(user);

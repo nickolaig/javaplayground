@@ -51,7 +51,6 @@ public class GetAllMessagesPlugin implements PlaygroundPlugin {
 
 		
 		for (ActivityEntity activityEntity : actList) {
-			System.err.println(activityEntity.getJsonAttributes());
 			post = this.jackson.readValue(activityEntity.getJsonAttributes(), PostMessageResponse.class);
 			allPosts.add(post.getMessage());
 		}

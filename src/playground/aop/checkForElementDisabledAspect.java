@@ -24,7 +24,7 @@ public class checkForElementDisabledAspect {
 	@Before("@annotation(playground.aop.checkForElementDisabled) && args (element,user,..)")
 	public void checkForElementDisabled(ElementEntity element, UserEntity user) throws Throwable {
 		
-		if(element.getType().equalsIgnoreCase("TamagotchiDisabled")) {
+		if(element.getType().contains("Disabled")) {
 			this.log.info("*********************** You Cant Play With The Deads!");
 			throw new RuntimeException("You Cant Play With The Deads!");
 		}

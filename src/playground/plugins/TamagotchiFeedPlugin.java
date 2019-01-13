@@ -45,7 +45,6 @@ public class TamagotchiFeedPlugin implements PlaygroundPlugin {
 		String plPlayground = activity.getPlayerPlayground();
 		String plEmail = activity.getPlayerEmail();
 		UserKey userKey = user.getUserEmailPlaygroundKey();
-		System.err.println("dsadhjasjkdahsjkdhaskjdhjksahdjksah"+element.getJsonAttributes()+"dsadhjasjkdahsjkdhaskjdhjksahdjksah");
 		Tamagotchi value = this.jackson.readValue(element.getJsonAttributes(), Tamagotchi.class);
 
 		if(value.getIsAlive()) {
@@ -60,9 +59,7 @@ public class TamagotchiFeedPlugin implements PlaygroundPlugin {
 			element.setType("TamagotchiDisabled");
 			points-=10;
 		}
-		System.err.println("dsadhjasjkdahsjkdhaskjdhjksahdjksah"+element.getJsonAttributes()+"dsadhjasjkdahsjkdhaskjdhjksahdjksah");
 		element.getAttributes().putAll(this.jackson.readValue(jackson.writeValueAsString(value), Map.class));
-		System.err.println("dsadhjasjkdahsjkdhaskjdhjksahdjksah"+element.getJsonAttributes()+"dsadhjasjkdahsjkdhaskjdhjksahdjksah");
 		UserEntity currentUser = this.users.getUserByEmailAndPlayground(userKey);
 		TamagotchiResponse rv;
 		

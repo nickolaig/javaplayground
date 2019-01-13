@@ -75,10 +75,12 @@ public class JpaActivityService implements ActivityService {
 			ActivityEntity rv = null;
 		
 			UserEntity user = this.users.getUserByEmailAndPlayground(new UserKey(email,userPlayground));
-			System.err.println(user.getUserEmailPlaygroundKey().getEmail() + "-----" + user.getUserEmailPlaygroundKey().getPlayground());
 			// check if the element exist in the playground
 			ElementEntity element = this.elements.getElementById(userPlayground, email, activity.getElementPlayground(), activity.getElementId());
-
+			if (element==null||element.getType().contains("Disabled"))
+			{
+				throw new RuntimeException("You can create activity on disabled element");
+			}
 
 			ActivityEntity activityEntity = activity.toEntity();
 
@@ -91,16 +93,13 @@ public class JpaActivityService implements ActivityService {
 				activityEntity.setPlayerPlayground(userPlayground);
 				String className = "playground.plugins." + type + "Plugin";
 				Class<?> theClass = Class.forName(className);
-				System.err.println(theClass.getName());
 				PlaygroundPlugin plugin = (PlaygroundPlugin) this.spring.getBean(theClass);
 				
 				//PlaygroundPlugin plugin = (PlaygroundPlugin) spring.getBean(Class.forName("playground.plugins." + type + "Plugin"));
 				
 				Object content = plugin.invokeOperation(element,user, activityEntity);
 				Map<String,Object> contentMap = this.jackson.readValue(this.jackson.writeValueAsString(content), Map.class);
-				System.err.println(contentMap);
 				activityEntity.getAttributes().putAll(contentMap);
-				System.err.println(activityEntity);
 				//activity = jackson.readValue(jackson.writeValueAsString(content),ActivityEntity.class);
 				rv=this.activities.save(activityEntity);
 			}

@@ -74,7 +74,6 @@ public class JpaElementService implements ElementService {
 			}
 			
 			
-			System.err.println("IN GENERATOR ID: " + element.getPlaygroundAndID().getId());
 			return this.elements.save(element);
 	}
 
