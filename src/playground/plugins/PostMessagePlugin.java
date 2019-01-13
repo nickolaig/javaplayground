@@ -38,7 +38,7 @@ public class PostMessagePlugin implements PlaygroundPlugin {
 	}
 
 	@Override
-	public Object invokeOperation(ActivityEntity activity, ElementEntity element, UserEntity user) throws Exception {
+	public Object invokeOperation( ElementEntity element, UserEntity user, ActivityEntity activity) throws Exception {
 
 
 		String plPlayground = activity.getPlayerPlayground();

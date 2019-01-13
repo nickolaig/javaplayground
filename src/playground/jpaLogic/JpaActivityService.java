@@ -96,7 +96,7 @@ public class JpaActivityService implements ActivityService {
 				
 				//PlaygroundPlugin plugin = (PlaygroundPlugin) spring.getBean(Class.forName("playground.plugins." + type + "Plugin"));
 				
-				Object content = plugin.invokeOperation(activityEntity,element,user);
+				Object content = plugin.invokeOperation(element,user, activityEntity);
 				Map<String,Object> contentMap = this.jackson.readValue(this.jackson.writeValueAsString(content), Map.class);
 				System.err.println(contentMap);
 				activityEntity.getAttributes().putAll(contentMap);

@@ -34,7 +34,7 @@ public class Tamagotchi {
 			else
 				this.Life +=life;
 		if (life<0)
-			this.increaseHappiness(2*life);
+			this.increaseHappiness(-10);
 	}
 	public Integer getHappiness() {
 		return this.Happiness;

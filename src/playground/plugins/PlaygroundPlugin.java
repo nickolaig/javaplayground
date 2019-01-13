@@ -12,7 +12,7 @@ import playground.logic.exceptions.ElementAlreadyExistsException;
 import playground.logic.exceptions.NoSuchElementID;
 
 public interface PlaygroundPlugin {
-		public Object invokeOperation( ActivityEntity activity, ElementEntity element,UserEntity user)
+		public Object invokeOperation( ElementEntity element,UserEntity user, ActivityEntity activity)
 				throws Exception;
 
 		

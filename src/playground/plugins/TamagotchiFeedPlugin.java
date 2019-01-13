@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import playground.aop.checkForElementDisabled;
 import playground.logic.ActivityEntity;
 import playground.logic.ElementEntity;
 import playground.logic.ElementService;
@@ -36,9 +37,9 @@ public class TamagotchiFeedPlugin implements PlaygroundPlugin {
 		this.elements = elements;
 
 	}
-
+	@checkForElementDisabled
 	@Override
-	public Object invokeOperation(ActivityEntity activity, ElementEntity element, UserEntity user) throws Exception {
+	public Object invokeOperation( ElementEntity element, UserEntity user, ActivityEntity activity) throws Exception {
 
 		Integer points=0;
 		String plPlayground = activity.getPlayerPlayground();
